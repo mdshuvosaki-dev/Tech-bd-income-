@@ -1,0 +1,2553 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Tech BD Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Hind+Siliguri:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+:root{
+  --bg:#eef5f3;--surface:#ffffff;--surface2:#f7faf9;
+  --ink:#0a2620;--ink2:#3d5a52;--mute:#8aa6a0;
+  --primary:#0db981;--primary2:#0a9668;--primary-soft:#e6f9f1;
+  --blue-soft:#e0ecfe;--amber-soft:#fef3d6;--purple-soft:#ece2fe;
+  --pink-soft:#fce0ef;--red-soft:#fee2e2;--cyan-soft:#def6fb;--indigo-soft:#e6e8fe;
+  --line:#e4eeeb;--line2:#d4e3de;
+  --shadow-sm:0 1px 3px rgba(10,40,30,.06),0 2px 8px rgba(10,40,30,.04);
+  --shadow:0 4px 12px rgba(10,40,30,.07),0 12px 30px rgba(10,40,30,.06);
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --spring:cubic-bezier(.2,1.2,.3,1);
+}
+html,body{min-height:100%}
+body{background:var(--bg);color:var(--ink);font:500 14px/1.55 'Plus Jakarta Sans','Hind Siliguri',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+.hide{display:none!important}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(10,60,40,.16);border-radius:10px;border:2px solid transparent;background-clip:padding-box}
+
+/* LOGIN */
+.login-page{display:grid;place-items:center;min-height:100vh;padding:24px;background:radial-gradient(60% 50% at 20% 15%,rgba(13,185,129,.22),transparent 60%),radial-gradient(50% 45% at 85% 80%,rgba(59,130,246,.16),transparent 60%),linear-gradient(135deg,#f0fbf6,#e8f2fe 50%,#f0fbf6)}
+.login-card{background:#fff;border-radius:32px;padding:44px 38px 36px;width:min(440px,100%);box-shadow:0 4px 24px rgba(10,60,40,.08),0 40px 80px rgba(10,60,40,.12);border:1px solid rgba(255,255,255,.7);animation:loginIn .7s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes loginIn{from{opacity:0;transform:translateY(28px) scale(.96)}}
+.login-mark{width:76px;height:76px;margin:0 auto 20px;border-radius:22px;background:linear-gradient(135deg,#0db981,#0a9668);display:grid;place-items:center;font-size:36px;color:#fff;box-shadow:0 16px 36px rgba(13,185,129,.35),inset 0 2px 0 rgba(255,255,255,.35)}
+.login-card h1{font-size:26px;font-weight:800;text-align:center;letter-spacing:-.02em;color:#0a2620;margin-bottom:6px}
+.login-card .tag{text-align:center;font-size:11px;font-weight:800;color:var(--primary);letter-spacing:.18em;margin-bottom:30px}
+.field{display:block;margin-bottom:16px}
+.field label{display:block;font-size:11.5px;font-weight:800;color:#0a2620;letter-spacing:.04em;margin-bottom:8px}
+.field input,.field select,.field textarea{width:100%;padding:14px 16px;border-radius:14px;border:2px solid var(--line);background:var(--surface2);font-size:14px;font-weight:600;transition:.2s var(--ease)}
+.field textarea{min-height:90px;resize:vertical;line-height:1.55;font-weight:500}
+.field input:focus,.field select:focus,.field textarea:focus{outline:0;border-color:var(--primary);background:#fff;box-shadow:0 0 0 4px rgba(13,185,129,.12)}
+.field select{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233d5a52' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 14px center;background-size:14px;padding-right:40px}
+.btn-login{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,#0db981,#0a9668);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em;box-shadow:0 12px 26px rgba(13,185,129,.32),inset 0 1px 0 rgba(255,255,255,.3);transition:.15s var(--ease);margin-top:8px}
+.btn-login:active{transform:scale(.97)}
+.err{color:#dc2626;font-size:12.5px;margin-top:14px;min-height:18px;text-align:center;font-weight:700}
+.cred-box{margin-top:22px;padding:16px 18px;background:linear-gradient(135deg,#f0fbf6,#f7faf9);border:1.5px dashed rgba(13,185,129,.4);border-radius:16px;font-size:12.5px;color:#0a2620;line-height:1.9}
+.cred-box b{color:var(--primary2)}
+.cred-box .lbl{font-size:10px;font-weight:800;color:var(--mute);letter-spacing:.1em;display:block;margin-bottom:6px}
+
+/* TOPBAR */
+.app{max-width:1240px;margin:0 auto;padding:22px 20px 100px}
+.topbar{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:22px;box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:22px;position:sticky;top:14px;z-index:50;backdrop-filter:blur(20px);background:rgba(255,255,255,.92)}
+.brand-mark{width:44px;height:44px;border-radius:14px;flex:none;background:linear-gradient(135deg,#0db981,#0a9668);display:grid;place-items:center;font-size:20px;color:#fff;box-shadow:0 8px 20px rgba(13,185,129,.3)}
+.brand-text{display:flex;flex-direction:column;line-height:1.15;min-width:0;flex:1}
+.brand-text b{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.brand-text span{font-size:11px;color:var(--mute);font-weight:700;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar-user{display:flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;background:var(--primary-soft);font-size:11.5px;font-weight:800;color:var(--primary2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topbar-user::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--primary);flex:none;box-shadow:0 0 0 3px rgba(13,185,129,.25)}
+.btn-logout{width:44px;height:44px;border-radius:14px;background:#fef2f2;color:#dc2626;display:grid;place-items:center;font-size:18px;transition:.15s var(--ease);border:1px solid #fee2e2;flex:none}
+.btn-logout:active{transform:scale(.94)}
+
+/* WELCOME */
+.welcome{padding:28px 26px;background:linear-gradient(135deg,#0db981,#0a9668);color:#fff;border-radius:26px;margin-bottom:22px;position:relative;overflow:hidden;box-shadow:0 20px 44px rgba(13,185,129,.28)}
+.welcome::before{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 70%)}
+.welcome h2{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:6px;position:relative;z-index:1}
+.welcome p{font-size:13.5px;opacity:.92;font-weight:600;position:relative;z-index:1}
+.welcome .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.22);font-size:11px;font-weight:800;letter-spacing:.03em;margin-top:12px;position:relative;z-index:1}
+.welcome .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#fff}
+
+/* SECTIONS */
+.section-title{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin:0 4px 14px}
+.section-title::before{content:'';width:4px;height:16px;border-radius:3px;background:linear-gradient(180deg,#0db981,#0a9668)}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+.feature-btn{background:var(--surface);border-radius:20px;padding:22px 18px;text-align:left;border:1px solid var(--line);box-shadow:var(--shadow-sm);cursor:pointer;transition:.2s var(--ease);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:12px;animation:fadeUp .4s var(--ease) both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}}
+.feature-btn:hover{transform:translateY(-3px);box-shadow:var(--shadow);border-color:var(--accent)}
+.feature-btn:active{transform:scale(.98)}
+.feature-ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:24px;color:#fff;background:var(--accent);box-shadow:0 8px 18px var(--accent-shadow),inset 0 1px 0 rgba(255,255,255,.5);transition:.2s var(--ease)}
+.feature-btn:hover .feature-ic{transform:scale(1.06) rotate(-3deg)}
+.feature-btn b{display:block;font-size:14.5px;font-weight:800;color:var(--ink)}
+.feature-btn small{display:block;font-size:11.5px;color:var(--mute);font-weight:600;line-height:1.4;margin-top:2px}
+.feature-badge{position:absolute;top:14px;right:14px;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:none;place-items:center;box-shadow:0 4px 10px rgba(239,68,68,.35)}
+.feature-badge.show{display:grid}
+
+.f-primary{--accent:linear-gradient(135deg,#0db981,#0a9668);--accent-shadow:rgba(13,185,129,.32)}
+.f-blue{--accent:linear-gradient(135deg,#3b82f6,#2563eb);--accent-shadow:rgba(59,130,246,.3)}
+.f-amber{--accent:linear-gradient(135deg,#f59e0b,#d97706);--accent-shadow:rgba(245,158,11,.3)}
+.f-purple{--accent:linear-gradient(135deg,#8b5cf6,#7c3aed);--accent-shadow:rgba(139,92,246,.3)}
+.f-pink{--accent:linear-gradient(135deg,#ec4899,#db2777);--accent-shadow:rgba(236,72,153,.3)}
+.f-red{--accent:linear-gradient(135deg,#ef4444,#dc2626);--accent-shadow:rgba(239,68,68,.3)}
+.f-cyan{--accent:linear-gradient(135deg,#06b6d4,#0891b2);--accent-shadow:rgba(6,182,212,.3)}
+.f-indigo{--accent:linear-gradient(135deg,#6366f1,#4f46e5);--accent-shadow:rgba(99,102,241,.3)}
+.f-orange{--accent:linear-gradient(135deg,#f97316,#ea580c);--accent-shadow:rgba(249,115,22,.3)}
+.f-slate{--accent:linear-gradient(135deg,#64748b,#475569);--accent-shadow:rgba(100,116,139,.3)}
+.f-emerald{--accent:linear-gradient(135deg,#10b981,#059669);--accent-shadow:rgba(16,185,129,.32)}
+
+/* MINI STATS */
+.mini-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:26px}
+.mini-stat{background:var(--surface);border-radius:16px;padding:16px;border:1px solid var(--line);box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:12px}
+.mini-stat .ico{width:40px;height:40px;border-radius:12px;flex:none;display:grid;place-items:center;font-size:18px}
+.mini-stat .info{min-width:0}
+.mini-stat b{display:block;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.1}
+.mini-stat small{display:block;font-size:10.5px;color:var(--mute);font-weight:800;letter-spacing:.06em;margin-top:3px;text-transform:uppercase}
+
+/* VIEW */
+.view{animation:viewIn .4s var(--ease) both}
+@keyframes viewIn{from{opacity:0;transform:translateY(10px)}}
+.view-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap}
+.btn-back{width:46px;height:46px;border-radius:14px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;font-size:20px;color:var(--ink2);box-shadow:var(--shadow-sm);transition:.15s var(--ease);flex:none}
+.btn-back:active{transform:scale(.94)}
+.view-head h2{font-size:22px;font-weight:800;letter-spacing:-.015em;color:var(--ink);display:flex;align-items:center;gap:10px}
+.view-head h2 .em{font-size:24px;line-height:1}
+.view-head .sub{font-size:12.5px;color:var(--mute);font-weight:600;margin-top:2px}
+.view-head-info{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pill-stat{padding:8px 14px;border-radius:12px;background:var(--primary-soft);color:var(--primary2);font-size:12px;font-weight:800;border:1px solid rgba(13,185,129,.2)}
+.pill-stat.warn{background:var(--amber-soft);color:#b45309;border-color:rgba(245,158,11,.24)}
+.pill-stat.info{background:var(--blue-soft);color:#1d4ed8;border-color:rgba(59,130,246,.24)}
+
+/* CARD */
+.card{background:var(--surface);border-radius:22px;padding:24px;margin-bottom:18px;border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.card h3{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:-.005em;margin-bottom:18px;display:flex;align-items:center;gap:9px}
+.card h3 .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:16px;background:var(--primary-soft);color:var(--primary2)}
+.card h3.blue .ic{background:var(--blue-soft);color:#1d4ed8}
+.card h3.amber .ic{background:var(--amber-soft);color:#b45309}
+.card h3.purple .ic{background:var(--purple-soft);color:#7c3aed}
+.card h3.pink .ic{background:var(--pink-soft);color:#be185d}
+.card h3.red .ic{background:var(--red-soft);color:#b91c1c}
+.card h3.cyan .ic{background:var(--cyan-soft);color:#0891b2}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.field.full{grid-column:1/-1}
+
+/* BUTTONS */
+.btn{padding:12px 22px;border-radius:12px;background:linear-gradient(135deg,#0db981,#0a9668);color:#fff;font-weight:800;font-size:13.5px;letter-spacing:.02em;box-shadow:0 8px 20px rgba(13,185,129,.28),inset 0 1px 0 rgba(255,255,255,.28);transition:.15s var(--ease);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn.blue{background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 8px 20px rgba(59,130,246,.28),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn.amber{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 8px 20px rgba(245,158,11,.28),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn.red{background:linear-gradient(135deg,#ef4444,#dc2626);box-shadow:0 8px 20px rgba(239,68,68,.28),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn.purple{background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 8px 20px rgba(139,92,246,.28),inset 0 1px 0 rgba(255,255,255,.28)}
+.btn.ghost{background:var(--surface);color:var(--ink2);border:1.5px solid var(--line);box-shadow:var(--shadow-sm)}
+.btn.sm{padding:9px 16px;font-size:12.5px;border-radius:10px}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--line);background:#fff}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px}
+th{text-align:left;font-size:11px;letter-spacing:.08em;color:var(--mute);padding:13px 16px;background:var(--surface2);text-transform:uppercase;font-weight:800;border-bottom:1px solid var(--line)}
+td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:hover td{background:rgba(13,185,129,.025)}
+tbody tr:last-child td{border-bottom:0}
+
+.badge{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:10px;font-size:11px;font-weight:800}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.ok{background:#dcfce7;color:#15803d}
+.badge.pend{background:#fef3c7;color:#b45309}
+.badge.rej{background:#fee2e2;color:#b91c1c}
+.badge.info{background:#dbeafe;color:#1d4ed8}
+
+.chip{display:inline-block;font-size:11px;font-weight:800;padding:5px 11px;border-radius:9px;background:var(--primary-soft);color:var(--primary2)}
+.chip.blue{background:var(--blue-soft);color:#1d4ed8}
+.chip.amber{background:var(--amber-soft);color:#b45309}
+.chip.purple{background:var(--purple-soft);color:#6d28d9}
+.chip.pink{background:var(--pink-soft);color:#be185d}
+.chip.red{background:var(--red-soft);color:#b91c1c}
+.code-snip{font-family:monospace;font-size:12px;background:var(--surface2);padding:4px 10px;border-radius:8px;color:var(--primary2);border:1px solid var(--line);font-weight:700}
+.row-act{display:flex;gap:6px;flex-wrap:wrap}
+
+/* EMPTY & LOADING */
+.empty{text-align:center;color:var(--mute);padding:50px 20px;font-weight:700;font-size:14px}
+.empty .em{display:block;font-size:54px;margin-bottom:14px;opacity:.6}
+.loading{display:flex;align-items:center;justify-content:center;gap:12px;color:var(--mute);padding:44px;font-weight:700;font-size:14px}
+.loading::before{content:'';width:22px;height:22px;border:2.5px solid var(--line);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOAST */
+.toast{position:fixed;top:24px;right:24px;padding:16px 22px 16px 56px;border-radius:16px;background:#fff;color:var(--ink);font-weight:800;font-size:13.5px;box-shadow:0 20px 44px rgba(10,60,40,.18),0 4px 10px rgba(10,60,40,.08);border:1.5px solid var(--line);opacity:0;transform:translateX(140%);transition:.42s cubic-bezier(.2,1.2,.3,1);z-index:9999;pointer-events:none;max-width:340px;min-width:220px}
+.toast::before{content:'✓';position:absolute;left:14px;top:50%;transform:translateY(-50%);width:28px;height:28px;border-radius:10px;background:linear-gradient(135deg,#0db981,#0a9668);color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px}
+.toast.show{opacity:1;transform:none}
+.toast.err{border-color:#fecaca;background:#fef2f2;color:#991b1b}
+.toast.err::before{content:'!';background:linear-gradient(135deg,#ef4444,#dc2626)}
+.toast.info{border-color:#bfdbfe;background:#eff6ff;color:#1e40af}
+.toast.info::before{content:'i';background:linear-gradient(135deg,#3b82f6,#2563eb)}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(10,40,30,.5);backdrop-filter:blur(6px);display:none;place-items:center;z-index:9998;padding:20px}
+.modal-bg.show{display:grid;animation:fadeIn .2s var(--ease)}
+@keyframes fadeIn{from{opacity:0}}
+.modal{background:#fff;border-radius:24px;padding:28px 26px;width:min(420px,100%);box-shadow:0 30px 70px rgba(10,40,30,.32);animation:modalIn .35s cubic-bezier(.2,1.2,.3,1) both}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(20px)}}
+.modal h3{font-size:19px;font-weight:800;color:var(--ink);margin-bottom:10px}
+.modal p{font-size:14px;color:var(--ink2);line-height:1.6;margin-bottom:24px}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+.muted{color:var(--mute);font-size:12.5px;font-weight:600;line-height:1.65}
+.divider{height:1px;background:var(--line);margin:18px 0}
+.notice{padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,#f0fbf6,#f7faf9);border:1.5px solid rgba(13,185,129,.22);display:flex;align-items:flex-start;gap:12px;font-size:13px;color:var(--ink2);line-height:1.6;margin-bottom:18px}
+.notice .em{font-size:22px;flex:none;line-height:1}
+.notice b{color:var(--primary2)}
+.qitem{padding:18px;border-radius:16px;background:var(--surface2);border:1px solid var(--line);margin-bottom:10px}
+.qitem b{font-size:13.5px;font-weight:800}
+.qmeta{color:var(--mute);font-size:11.5px;font-weight:700;margin-top:4px}
+.qtext{color:var(--ink);font-size:13.5px;margin:10px 0;line-height:1.6}
+
+@media (max-width:640px){
+  .app{padding:14px 14px 80px}
+  .topbar{padding:12px 14px;border-radius:18px;top:10px}
+  .brand-text b{font-size:13.5px}
+  .topbar-user{font-size:10.5px;padding:7px 11px;max-width:120px}
+  .btn-logout{width:40px;height:40px;font-size:16px}
+  .welcome{padding:22px 20px;border-radius:22px}
+  .welcome h2{font-size:20px}
+  .feature-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .feature-btn{padding:16px 14px;border-radius:18px;gap:10px}
+  .feature-ic{width:44px;height:44px;font-size:20px;border-radius:14px}
+  .feature-btn b{font-size:13px}
+  .feature-btn small{font-size:10.5px}
+  .mini-stats{grid-template-columns:repeat(2,1fr);gap:10px}
+  .mini-stat{padding:13px;gap:10px}
+  .mini-stat .ico{width:36px;height:36px;font-size:16px}
+  .mini-stat b{font-size:18px}
+  .card{padding:18px;border-radius:20px}
+  .view-head h2{font-size:18px}
+  .form-grid{grid-template-columns:1fr;gap:12px}
+  .toast{top:auto;bottom:20px;right:14px;left:14px;max-width:none}
+  .row-act{flex-direction:column}
+  .row-act .btn{width:100%}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginView" class="login-page">
+  <form id="loginForm" class="login-card">
+    <div class="login-mark">🛡️</div>
+    <h1>Tech BD Admin</h1>
+    <div class="tag">SECURE CONTROL PANEL</div>
+    <div class="field">
+      <label>📧 Admin Email</label>
+      <input id="email" type="email" required value="mustafizurmd459@gmail.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>🔒 Password</label>
+      <input id="pass" type="password" required placeholder="••••••" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-login">🔓 Secure Login</button>
+    <p id="err" class="err"></p>
+    <div class="cred-box">
+      <span class="lbl">🔐 ADMIN CREDENTIALS</span>
+      📧 <b>mustafizurmd459@gmail.com</b><br>
+      🔑 <b>998877</b>
+    </div>
+  </form>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminView" class="app hide">
+  <div class="topbar">
+    <div class="brand-mark">🛡️</div>
+    <div class="brand-text">
+      <b>Tech BD Admin</b>
+      <span id="whoami">—</span>
+    </div>
+    <div class="topbar-user" id="usrEmail">—</div>
+    <button class="btn-logout" id="logout" title="Logout">🚪</button>
+  </div>
+  <div id="view"><div class="loading">Loading…</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3 id="mTitle">Confirm</h3>
+    <p id="mText">Are you sure?</p>
+    <div class="acts">
+      <button class="btn ghost" onclick="closeModal(false)">Cancel</button>
+      <button class="btn red" id="mOk" onclick="closeModal(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<script>
+/* ═══════════════ CONFIG ═══════════════ */
+const FB_CONFIG = {
+  apiKey: "AIzaSyCMquuPyspnCjuZqUKwvZ7_k3Kkmejblyg",
+  authDomain: "tech-bd-income.firebaseapp.com",
+  databaseURL: "https://tech-bd-income-default-rtdb.firebaseio.com",
+  projectId: "tech-bd-income",
+  storageBucket: "tech-bd-income.firebasestorage.app",
+  messagingSenderId: "119981495683",
+  appId: "1:119981495683:web:f40e64e95113b167c4d2b6",
+  measurementId: "G-928N9LJELW"
+};
+const ADMIN_EMAILS = ["mustafizurmd459@gmail.com"];
+
+firebase.initializeApp(FB_CONFIG);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+const TS   = () => firebase.firestore.FieldValue.serverTimestamp();
+const tsMs = v => v && v.toMillis ? v.toMillis() : (v ? +v : 0);
+
+/* ═══════════════ HELPERS ═══════════════ */
+const $  = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let toastTimer;
+function toast(msg, kind){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (kind === 'err' ? ' err' : kind === 'info' ? ' info' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast', 2800);
+}
+
+let modalResolve = null;
+function confirmDialog(title, text, okText = 'Confirm'){
+  $('mTitle').textContent = title;
+  $('mText').textContent = text;
+  $('mOk').textContent = okText;
+  $('modalBg').classList.add('show');
+  return new Promise(res => modalResolve = res);
+}
+function closeModal(v){
+  $('modalBg').classList.remove('show');
+  if (modalResolve) { modalResolve(v); modalResolve = null; }
+}
+
+/* ─────────── Safe Firestore helpers (never stuck) ─────────── */
+async function safeList(name){
+  try {
+    const s = await db.collection(name).get();
+    return s.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e){
+    console.warn('[SafeList] '+name+' error:', e.message);
+    return [];
+  }
+}
+const listCol   = safeList;
+const addDoc    = (n,d) => db.collection(n).add({ ...d, ts: TS() });
+const setDoc    = (n,i,d) => db.collection(n).doc(i).set(d, { merge:true });
+const updateDoc = (n,i,d) => db.collection(n).doc(i).update(d);
+const delDoc    = (n,i) => db.collection(n).doc(i).delete();
+
+/* ═══════════════ AUTH ═══════════════ */
+$('loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = $('email').value.trim().toLowerCase();
+  const pass  = $('pass').value;
+  $('err').textContent = '';
+  if (!ADMIN_EMAILS.includes(email)) {
+    $('err').textContent = '❌ এই ইমেইলটি অ্যাডমিন নয়।';
+    return;
+  }
+  try {
+    await auth.signInWithEmailAndPassword(email, pass);
+  } catch (err) {
+    const map = {
+      'auth/wrong-password':         '❌ পাসওয়ার্ড ভুল।',
+      'auth/user-not-found':         '❌ Firebase Authentication → Users এ ইউজার যোগ করুন।',
+      'auth/invalid-email':          '❌ ইমেইল ফরম্যাট ভুল।',
+      'auth/too-many-requests':      '❌ অনেকবার ভুল হয়েছে। পরে চেষ্টা করুন।',
+      'auth/network-request-failed': '❌ ইন্টারনেট সংযোগ চেক করুন।'
+    };
+    $('err').textContent = map[err.code] || ('❌ ' + err.message);
+  }
+});
+
+auth.onAuthStateChanged(u => {
+  if (u && ADMIN_EMAILS.includes((u.email||'').toLowerCase())) {
+    $('loginView').classList.add('hide');
+    $('adminView').classList.remove('hide');
+    $('usrEmail').textContent = u.email;
+    $('whoami').textContent = u.email;
+    boot();
+  } else {
+    $('loginView').classList.remove('hide');
+    $('adminView').classList.add('hide');
+  }
+});
+
+$('logout').addEventListener('click', async () => {
+  if (await confirmDialog('Logout?', 'আপনি কি লগআউট করতে চান?', 'Logout')) {
+    auth.signOut();
+    toast('লগআউট হয়েছে', 'info');
+  }
+});
+
+/* ═══════════════ CACHE ═══════════════ */
+const cache = { tg:{}, users:[], withdrawals:[], promos:[], supportQ:[], faq:[], ads:[], tasks:[], banners:[], announcements:[], lbMeta:null, payoutCount:null, fbSales:[], igSales:[], gmSales:[] };
+
+async function boot(){
+  $('view').innerHTML = '<div class="loading">Loading data…</div>';
+  await refreshAll();
+  showHome();
+  tgBoot();
+  startLbAuto();
+}
+
+async function refreshAll(){
+  try{
+    const [users,wd,promos,sq,faq,ads,tasks,banners,ann] = await Promise.all([
+      safeList('users'),
+      safeList('withdrawals'),
+      safeList('promos'),
+      safeList('supportQ'),
+      safeList('faq'),
+      safeList('ads'),
+      safeList('tasks'),
+      safeList('banners'),
+      safeList('announcements')
+    ]);
+    try{ const tl = await db.collection('tgLinks').get(); cache.tg = {}; tl.forEach(d => cache.tg[d.id] = d.data()); }catch(e){ cache.tg = {}; }
+    try{ const lb = await db.collection('leaderboard').doc('top').get(); cache.lbMeta = lb.exists ? { rows: (lb.data().rows||[]).length, ts: lb.data().ts } : null; }catch(e){ cache.lbMeta = null; }
+    try{ const pf = await db.collection('payoutsFeed').limit(1).get(); const pc = await db.collection('payoutsFeed').get().catch(() => ({ size: pf.size })); cache.payoutCount = pc.size; }catch(e){ cache.payoutCount = null; }
+    cache.users         = users.sort((a,b)=>tsMs(b.lastSeen)-tsMs(a.lastSeen));
+    cache.withdrawals   = wd.sort((a,b)=>tsMs(b.ts)-tsMs(a.ts));
+    cache.promos        = promos;
+    cache.supportQ      = sq.sort((a,b)=>tsMs(b.ts)-tsMs(a.ts));
+    cache.faq           = faq;
+    cache.ads           = ads;
+    cache.tasks         = tasks;
+    cache.banners       = banners.sort((a,b)=>(+a.order||0)-(+b.order||0));
+    cache.announcements = ann.sort((a,b)=>tsMs(b.ts)-tsMs(a.ts));
+    try{ cache.fbSales = (await safeList('fbSales')).sort((a,b)=>tsMs(b.ts)-tsMs(a.ts)); }catch(e){ cache.fbSales = []; }
+    try{ cache.igSales = (await safeList('igSales')).sort((a,b)=>tsMs(b.ts)-tsMs(a.ts)); }catch(e){ cache.igSales = []; }
+    try{ cache.gmSales = (await safeList('gmSales')).sort((a,b)=>tsMs(b.ts)-tsMs(a.ts)); }catch(e){ cache.gmSales = []; }
+  } catch(e){
+    console.error('refreshAll error:', e);
+  }
+}
+
+/* ═══════════════ HOME ═══════════════ */
+function showHome(){
+  const pending = cache.withdrawals.filter(w => w.status === 'pending').length;
+  const openQ   = cache.supportQ.filter(q => !q.reply).length;
+  const pendingFb = (cache.fbSales||[]).filter(x => x.status === 'pending').length;
+  const pendingIg = (cache.igSales||[]).filter(x => x.status === 'pending').length;
+  const pendingGm = (cache.gmSales||[]).filter(x => x.status === 'pending').length;
+  const online  = cache.users.filter(u => Date.now() - tsMs(u.lastSeen) < 75000).length;
+  const approved = cache.withdrawals.filter(w => w.status === 'approved');
+  const totalPaid = approved.reduce((a,x)=>a+(+x.amount||0),0);
+
+  const FEATURES = [
+    { v:'users',       icon:'👥', label:'Users',         desc:'সব মেম্বার দেখুন ও কন্ট্রোল করুন',  color:'f-blue'   },
+    { v:'ads',         icon:'💵', label:'Ads',           desc:'বিজ্ঞাপন যোগ, এডিট, ডিলিট',        color:'f-primary' },
+    { v:'game',        icon:'🎮', label:'Game',          desc:'Bubble Shooter: লেভেল, reward, ad', color:'f-indigo' },
+    { v:'tasks',       icon:'✅', label:'Tasks',         desc:'Web, YouTube, Telegram টাস্ক',     color:'f-emerald' },
+    { v:'banners',     icon:'🎨', label:'Banners',       desc:'হোম স্ক্রিনের ব্যানার',            color:'f-purple' },
+    { v:'withdrawals', icon:'👛', label:'Withdrawals',   desc:'পেমেন্ট রিকোয়েস্ট অ্যাপ্রুভ',      color:'f-amber',   badge:pending },
+    { v:'fbsell',      icon:'📘', label:'FB ID Sell',    desc:'আইডি অ্যাপ্রুভ/রিজেক্ট, রেট ও পাসওয়ার্ড', color:'f-blue',    badge:pendingFb },
+    { v:'igsell',      icon:'📸', label:'IG ID Sell',    desc:'ইনস্টাগ্রাম আইডি অ্যাপ্রুভ/রিজেক্ট, রেট ও পাসওয়ার্ড', color:'f-pink',   badge:pendingIg },
+    { v:'gmsell',      icon:'✉️', label:'Gmail Sell',    desc:'জিমেল অ্যাপ্রুভ/রিজেক্ট, রেট ও পাসওয়ার্ড', color:'f-red',    badge:pendingGm },
+    { v:'promos',      icon:'🎟️', label:'Promo Codes',   desc:'সিক্রেট প্রোমো কোড তৈরি',          color:'f-pink'   },
+    { v:'announce',    icon:'📢', label:'Announcements', desc:'পাবলিক নোটিশ প্রকাশ',             color:'f-orange' },
+    { v:'support',     icon:'🎧', label:'Support',       desc:'প্রশ্নের উত্তর + FAQ',             color:'f-cyan',    badge:openQ },
+    { v:'settings',    icon:'⚙️', label:'Settings',      desc:'অ্যাপ কনফিগারেশন + Google Sheet',  color:'f-slate'  },
+    { v:'chats',       icon:'🛡️', label:'Chats & Calls', desc:'ইউজারদের চ্যাট ও কল লগ',           color:'f-red'    },
+    { v:'notify',      icon:'🔔', label:'Broadcast',     desc:'অ্যাপ নোটিশ + বট মেসেজ',           color:'f-indigo' },
+    { v:'security',    icon:'🔐', label:'Security',      desc:'ইমেইল ও পাসওয়ার্ড পরিবর্তন',        color:'f-red'    },
+    { v:'logout',      icon:'🚪', label:'Logout',        desc:'অ্যাকাউন্ট থেকে বের হন',            color:'f-slate'  }
+  ];
+
+  $('view').innerHTML = `
+    <div class="welcome">
+      <h2>👋 আসসালামু আলাইকুম, Admin</h2>
+      <p>Tech BD Income অ্যাপের সব কিছু এখান থেকে নিয়ন্ত্রণ করুন</p>
+      <div class="badge">● রিয়েল-টাইম সিঙ্ক চালু</div>
+    </div>
+
+    <div class="mini-stats">
+      <div class="mini-stat">
+        <div class="ico" style="background:#e0ecfe;color:#1d4ed8">👥</div>
+        <div class="info"><b>${cache.users.length}</b><small>Total Users</small></div>
+      </div>
+      <div class="mini-stat">
+        <div class="ico" style="background:#dcfce7;color:#15803d">🟢</div>
+        <div class="info"><b>${online}</b><small>Online Now</small></div>
+      </div>
+      <div class="mini-stat">
+        <div class="ico" style="background:#fef3c7;color:#b45309">⏳</div>
+        <div class="info"><b>${pending}</b><small>Pending WD</small></div>
+      </div>
+      <div class="mini-stat">
+        <div class="ico" style="background:#ece2fe;color:#7c3aed">💰</div>
+        <div class="info"><b>৳${totalPaid.toFixed(0)}</b><small>Total Paid</small></div>
+      </div>
+    </div>
+
+    <div class="section-title">📋 সব ফিচার</div>
+
+    <div class="feature-grid">
+      ${FEATURES.map(f => `
+        <button class="feature-btn ${f.color}" onclick="go('${f.v}')">
+          ${f.badge ? `<span class="feature-badge show">${f.badge}</span>` : ''}
+          <div class="feature-ic">${f.icon}</div>
+          <div>
+            <b>${f.label}</b>
+            <small>${f.desc}</small>
+          </div>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function go(v){
+  if (v === 'logout') { $('logout').click(); return; }
+  const view = $('view');
+  view.innerHTML = '<div class="loading">Loading…</div>';
+  setTimeout(async () => {
+    try {
+      const map = {
+        users: viewUsers, ads: viewAds, tasks: viewTasks,
+        banners: viewBanners, withdrawals: viewWithdrawals, promos: viewPromos,
+        announce: viewAnnouncements, support: viewSupport,
+        notify: viewNotify, security: viewSecurity
+      };
+      if (v === 'settings') {
+        view.innerHTML = await viewSettings();
+      } else if (v === 'gmsell') {
+        view.innerHTML = await viewGmSell();
+      } else if (v === 'igsell') {
+        view.innerHTML = await viewIgSell();
+      } else if (v === 'fbsell') {
+        view.innerHTML = await viewFbSell();
+      } else if (v === 'game') {
+        view.innerHTML = await viewGame();
+      } else if (v === 'chats') {
+        view.innerHTML = await viewChats();
+      } else if (map[v]) {
+        view.innerHTML = map[v]();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch(e) {
+      console.error(e);
+      view.innerHTML = '<div class="empty"><span class="em">⚠️</span>Error: '+esc(e.message)+'</div>';
+    }
+  }, 60);
+}
+
+function backBtn(){
+  return `<button class="btn-back" onclick="showHome()" title="Back">←</button>`;
+}
+function viewHead(icon, title, sub, extra = ''){
+  return `
+    <div class="view-head">
+      ${backBtn()}
+      <div>
+        <h2><span class="em">${icon}</span> ${title}</h2>
+        <div class="sub">${sub}</div>
+      </div>
+      <div class="view-head-info">${extra}</div>
+    </div>
+  `;
+}
+
+/* ═══════════════ USERS ═══════════════ */
+function viewUsers(){
+  const q = ($('uq')?.value || '').toLowerCase();
+  const rows = cache.users.filter(u =>
+    !q || (u.name||'').toLowerCase().includes(q) || u.id.toLowerCase().includes(q)
+  );
+  const banned = cache.users.filter(u => u.banned).length;
+  return `
+    ${viewHead('👥','Users','সব মেম্বার দেখুন ও কন্ট্রোল করুন',
+      `<span class="pill-stat">${cache.users.length} Total</span>
+       <span class="pill-stat info">${cache.users.length - banned} Active</span>
+       ${banned ? `<span class="pill-stat warn">${banned} Banned</span>` : ''}`
+    )}
+    <div class="card">
+      <div class="field">
+        <label>🔍 Search</label>
+        <input id="uq" placeholder="নাম বা UID দিয়ে খুঁজুন…" value="${esc(q)}" oninput="go('users')">
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">👥</span> Members (${rows.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>UID</th><th>Telegram</th><th>Last Seen</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${rows.map(u => `
+              <tr>
+                <td><b>${esc(u.name || '—')}</b></td>
+                <td><span class="code-snip">${esc(u.id.slice(0,12))}…</span></td>
+                <td>${cache.tg[u.id] ? esc((cache.tg[u.id].tgName ? '@'+cache.tg[u.id].tgName : '') + ' ' + cache.tg[u.id].tgId) : '<span style="opacity:.5">—</span>'}</td>
+                <td>${u.lastSeen ? new Date(tsMs(u.lastSeen)).toLocaleString() : '—'}</td>
+                <td>${u.banned ? '<span class="badge rej">Banned</span>' : '<span class="badge ok">Active</span>'}</td>
+                <td class="row-act">
+                  <button class="btn sm blue" onclick="adjustBal('${u.id}')">💰 Balance</button>
+                  <button class="btn sm ${u.banned ? 'ghost' : 'red'}" onclick="toggleBan('${u.id}', ${!u.banned})">
+                    ${u.banned ? '✅ Unban' : '🚫 Ban'}
+                  </button>
+                </td>
+              </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">👤</span>কোনো ইউজার নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function toggleBan(uid, banned){
+  const ok = await confirmDialog(
+    banned ? 'Ban User?' : 'Unban User?',
+    banned ? 'এই ইউজারকে ব্যান করবেন?' : 'এই ইউজারকে আনব্যান করবেন?',
+    banned ? '🚫 Ban' : '✅ Unban'
+  );
+  if (!ok) return;
+  try{
+    await setDoc('users', uid, { banned });
+    toast(banned ? 'ইউজার ব্যান করা হলো' : 'আনব্যান করা হলো');
+    await refreshAll(); go('users');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ TELEGRAM BOT ENGINE ═══════════════ */
+const TGE = { tok:'', chan:'-1004408557794', uname:'TECH_BD_INCOME_BOT', on:false, gen:0, unsub:[], log:[], adm:{ t:0, ids:new Set() }, off:0 };
+try{ TGE.off = +localStorage.getItem('tge_off') || 0; }catch(e){}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const tEsc = s => String(s == null ? '' : s).replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
+const bdt = n => 'BDT=' + (+n || 0).toFixed(2) + '(💸)';
+function tgLog(m){ TGE.log.unshift(new Date().toLocaleTimeString() + '  ' + m); TGE.log.length = Math.min(TGE.log.length, 40); const e = $('tgLogBox'); if (e) e.textContent = TGE.log.join('\n'); }
+function setTgBadge(){
+  let b = $('tgBadge');
+  if (!b){ b = document.createElement('div'); b.id = 'tgBadge'; b.onclick = () => go('settings'); b.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:50;padding:7px 12px;border-radius:20px;font:700 12px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.2)'; document.body.appendChild(b); }
+  b.textContent = TGE.on ? '🤖 Bot ON — পেজ খোলা রাখুন' : (TGE.tok ? '🤖 Bot OFF' : '🤖 Bot: Token দিন');
+  b.style.background = TGE.on ? '#16a34a' : '#dc2626'; b.style.color = '#fff';
+}
+async function tgApi(method, body){
+  const r = await fetch(`https://api.telegram.org/bot${TGE.tok}/${method}`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify(body || {}) });
+  const j = await r.json().catch(() => ({}));
+  if (!j.ok){ const e = new Error(j.description || ('HTTP ' + r.status)); e.code = j.error_code; e.retry = j.parameters && j.parameters.retry_after; throw e; }
+  return j.result;
+}
+const tgTry = (m, b) => tgApi(m, b).catch(e => { tgLog('⚠ ' + m + ': ' + e.message); return null; });
+async function tgDM(uid, l, payload){
+  try{ await tgApi('sendMessage', { chat_id: l.tgId, ...payload }); return true; }
+  catch(e){
+    tgLog(`❌ DM যায়নি (${l.name || l.tgName || l.tgId}): ${e.message}`);
+    if (e.code === 403 || e.code === 400){
+      db.collection('tgLinks').doc(String(uid)).set({ started:false }, { merge:true }).catch(() => {});
+      toast('⚠ ইউজারের ইনবক্সে মেসেজ যায়নি — সে বটে START দেয়নি। অ্যাপে তাকে START দেওয়ার নোটিশ দেখানো হচ্ছে।', 'err');
+    }
+    return false;
+  }
+}
+let LBX = { busy:false, last:0, iv:null };
+async function publishLeaderboard(silent){
+  if (LBX.busy) return;
+  if (silent && Date.now() - LBX.last < 20000) return;
+  LBX.busy = true;
+  const btn = $('lbBtn'); if (btn && !silent){ btn.disabled = true; btn.textContent = 'হিসাব চলছে…'; }
+  try{
+    const [users, td, av, bo, pu, rb, aj, wd, gw] = await Promise.all(
+      ['users','taskDone','adViews','bonuses','promoUse','refBonuses','adjustments','withdrawals','gameWins'].map(safeList));
+    const bal = {};
+    const add = (list, f) => list.forEach(x => { if (x.uid) bal[x.uid] = (bal[x.uid] || 0) + (+x[f] || 0); });
+    [td, av, bo, pu, gw].forEach(l => add(l, 'reward'));
+    [rb, aj].forEach(l => add(l, 'amount'));
+    wd.forEach(w => { if (w.uid && w.status !== 'rejected') bal[w.uid] = (bal[w.uid] || 0) - (+w.amount || 0); });
+    const rows = [];
+    users.forEach(u => {
+      if (u.banned) return;
+      const v = Math.round((bal[u.id] || 0) * 100) / 100;
+      if (v > 0) rows.push({ name: u.name || 'Member', amount: v, k: String(u.id).slice(-6), p: /^https:\/\/[^\s"'<>]{3,300}$/.test(String(u.photo || '')) ? String(u.photo) : '' });
+    });
+    rows.sort((x, y) => y.amount - x.amount);
+    await db.collection('leaderboard').doc('top').set({ rows: rows.slice(0,50), total: rows.length, ts: TS() });
+    LBX.last = Date.now();
+    if (!silent) toast(`✅ লিডারবোর্ড আপডেট হয়েছে (${rows.length} জন)`);
+    try{ tgLog(`🏆 Leaderboard ${silent ? 'auto-' : ''}published: ${rows.length} জন`); }catch(e){}
+  }catch(e){ if (!silent) toast('ব্যর্থ: ' + e.message, 'err'); else console.warn('leaderboard auto-publish:', e.message); }
+  LBX.busy = false;
+  if (btn && !silent){ btn.disabled = false; btn.textContent = '🏆 Refresh Leaderboard'; }
+}
+function startLbAuto(){
+  if (LBX.iv) return;
+  publishLeaderboard(true);
+  LBX.iv = setInterval(() => publishLeaderboard(true), 5 * 60 * 1000);
+}
+const tgOf = async uid => { const d = await db.collection('tgLinks').doc(String(uid)).get(); return d.exists ? d.data() : null; };
+
+async function tgBoot(){
+  try{
+    const d = await db.collection('private').doc('bot').get(), c = d.exists ? d.data() : {};
+    TGE.tok = c.token || ''; TGE.chan = c.channelId || TGE.chan; TGE.uname = c.botUsername || TGE.uname;
+  }catch(e){ tgLog('config load failed: ' + e.message); }
+  if (TGE.tok) tgStart(); else setTgBadge();
+}
+function tgStop(){ TGE.gen++; TGE.on = false; TGE.unsub.forEach(f => { try{ f(); }catch(e){} }); TGE.unsub = []; if (TGE.lbIv) clearInterval(TGE.lbIv); setTgBadge(); }
+async function tgStart(){
+  tgStop(); const gen = TGE.gen; TGE.on = true; setTgBadge();
+  try{
+    await tgApi('deleteWebhook', { drop_pending_updates:false });
+    const me = await tgApi('getMe'); tgLog('✅ Bot চালু: @' + me.username);
+  }catch(e){ tgLog('❌ ' + e.message); TGE.on = false; setTgBadge(); return; }
+  TGE.unsub.push(db.collection('withdrawals').orderBy('ts','desc').limit(150).onSnapshot(
+    s => s.docChanges().forEach(ch => { if (gen === TGE.gen && ch.type !== 'removed') tgWithdraw(ch.doc).catch(e => tgLog('❌ withdraw: ' + e.message)); }),
+    e => tgLog('withdraw listener: ' + e.message)));
+  TGE.unsub.push(db.collection('pings').onSnapshot(
+    s => s.docChanges().forEach(ch => { if (gen === TGE.gen && ch.type === 'added') tgPing(ch.doc).catch(e => tgLog('❌ ping: ' + e.message)); }),
+    e => tgLog('ping listener: ' + e.message)));
+  TGE.unsub.push(db.collection('tgReq').onSnapshot(
+    s => s.docChanges().forEach(ch => { if (gen === TGE.gen && ch.type !== 'removed') tgLinkReq(ch.doc).catch(e => tgLog('❌ link: ' + e.message)); }),
+    e => tgLog('link listener: ' + e.message)));
+  publishLeaderboard(true).catch(() => {});
+  TGE.lbIv && clearInterval(TGE.lbIv);
+  TGE.lbIv = setInterval(() => { if (gen === TGE.gen) publishLeaderboard(true).catch(() => {}); }, 15 * 60 * 1000);
+  tgPoll(gen);
+}
+async function tgPoll(gen){
+  let back = 1000;
+  while (gen === TGE.gen){
+    try{
+      const ups = await tgApi('getUpdates', { offset: TGE.off, timeout: 25, allowed_updates: ['message', 'callback_query'] });
+      back = 1000;
+      for (const u of ups){
+        TGE.off = u.update_id + 1; try{ localStorage.setItem('tge_off', TGE.off); }catch(e){}
+        try{ if (u.message) await tgOnMessage(u.message); else if (u.callback_query) await tgOnCallback(u.callback_query); }
+        catch(e){ tgLog('❌ update: ' + e.message); }
+      }
+    }catch(e){
+      if (e.code === 409){ tgLog('⚠ অন্য কোথাও (ট্যাব/ডিভাইস) বট চলছে'); back = 20000; }
+      else if (e.code === 401){ tgLog('❌ Token ভুল'); TGE.on = false; setTgBadge(); return; }
+      else back = Math.min(back * 2, 30000);
+      await sleep(back);
+    }
+  }
+}
+
+async function tgIsChanAdmin(id){
+  if (Date.now() - TGE.adm.t > 300000){
+    const l = await tgApi('getChatAdministrators', { chat_id: TGE.chan });
+    TGE.adm = { t: Date.now(), ids: new Set(l.map(m => m.user.id)) };
+  }
+  return TGE.adm.ids.has(id);
+}
+async function tgOnMessage(m){
+  if (!m.chat || m.chat.type !== 'private' || !m.from || m.from.is_bot) return;
+  const from = m.from, tgId = String(from.id), text = String(m.text || '');
+  const name = [from.first_name, from.last_name].filter(Boolean).join(' ');
+  const ref = db.collection('botUsers').doc(tgId), existed = (await ref.get()).exists;
+  await ref.set({ name, username: from.username || '', active:true, lastStart: TS(), ...(existed ? {} : { joinedAt: TS() }) }, { merge:true });
+  try{ (await db.collection('tgLinks').where('tgId', '==', tgId).get()).forEach(d => d.ref.set({ started:true }, { merge:true })); }catch(e){}
+  if (!/^\/start/i.test(text)) return tgTry('sendMessage', { chat_id: m.chat.id, text: 'অ্যাপ খুলতে নিচের মেনু বাটন ব্যবহার করুন। 👇' });
+  const st = (await db.collection('settings').doc('app').get()).data() || {};
+  const payload = (text.split(/\s+/)[1] || '').trim();
+  if (!existed && /^[A-Za-z0-9]{10,40}$/.test(payload) && (+st.refReward || 0) > 0){
+    try{
+      const [ru, own, done] = await Promise.all([
+        db.collection('users').doc(payload).get(),
+        db.collection('tgLinks').where('tgId', '==', tgId).get(),
+        db.collection('refBonuses').doc(tgId).get()
+      ]);
+      if (ru.exists && !ru.data().banned && !done.exists && !own.docs.some(d => d.id === payload)){
+        await db.collection('refBonuses').doc(tgId).set({ uid: payload, amount: +st.refReward, tgId, name, ts: TS() });
+        tgLog(`🎁 Refer: ${name || tgId} → ${payload.slice(0,8)}… (${st.refReward})`);
+        const rl = await tgOf(payload);
+        if (rl) tgDM(payload, rl, { parse_mode:'HTML', text: `🎉 <b>নতুন রেফার!</b>\n${tEsc(name || 'একজন বন্ধু')} আপনার লিংক দিয়ে যোগ দিয়েছে।\n➕ ${bdt(st.refReward)} আপনার ব্যালেন্সে যোগ হয়েছে।` });
+      }
+    }catch(e){ tgLog('⚠ referral: ' + e.message); }
+  }
+  const kb = st.appUrl && /^https:\/\//.test(st.appUrl) ? { reply_markup:{ inline_keyboard:[[{ text:'🚀 Open App', web_app:{ url: st.appUrl } }]] } } : {};
+  return tgTry('sendMessage', { chat_id: m.chat.id, parse_mode:'HTML', text: `👋 স্বাগতম, <b>${tEsc(from.first_name || 'বন্ধু')}</b>!\n\nTech BD Income এ কাজ করে ইনকাম করুন। শুরু করতে অ্যাপ খুলুন।`, ...kb });
+}
+async function tgOnCallback(q){
+  const p = String(q.data || '').split(':');
+  if (p[0] !== 'wd' || !['a','r'].includes(p[1]) || !p[2]) return tgTry('answerCallbackQuery', { callback_query_id: q.id });
+  let ok = false; try{ ok = await tgIsChanAdmin(q.from.id); }catch(e){ tgLog('⚠ admins: ' + e.message); }
+  if (!ok) return tgTry('answerCallbackQuery', { callback_query_id: q.id, text:'⛔ আপনি অ্যাডমিন নন', show_alert:true });
+  const ref = db.collection('withdrawals').doc(p[2]), status = p[1] === 'a' ? 'approved' : 'rejected';
+  const res = await db.runTransaction(async t => {
+    const d = await t.get(ref);
+    if (!d.exists || d.data().status !== 'pending') return 'done';
+    t.update(ref, { status, reviewedAt: TS(), reviewedVia: 'telegram:' + (q.from.username ? '@' + q.from.username : q.from.id), note: status === 'rejected' ? 'Rejected by admin' : '' });
+    return 'ok';
+  });
+  return tgTry('answerCallbackQuery', { callback_query_id: q.id, text: res === 'ok' ? (status === 'approved' ? '✅ Approved' : '❌ Rejected') : 'ইতিমধ্যে প্রসেস হয়েছে' });
+}
+async function tgClaim(ref, field){
+  return db.runTransaction(async t => { const d = await t.get(ref); if (!d.exists || d.data()[field]) return false; t.update(ref, { [field]: true }); return true; });
+}
+async function tgWithdraw(snap){
+  const w = snap.data(), ref = snap.ref;
+  if (w.status === 'pending' && !w.tgSent){
+    if (!await tgClaim(ref, 'tgSent')) return;
+    const bal = await userBal(w.uid, snap.id), flagged = (+w.amount) > bal + 0.005, l = await tgOf(w.uid);
+    if (!l) tgLog('ℹ ইউজারের Telegram যুক্ত নেই (সে Telegram এর ভেতর থেকে অ্যাপ খোলেনি), তাই ইনবক্সে মেসেজ যাবে না: ' + (w.name || w.uid));
+    const text = `💸 <b>New Withdraw Request</b>\n\n👤 ${tEsc(w.name || 'User')}${l && l.tgName ? ' (@' + tEsc(l.tgName) + ')' : ''}\n🆔 <code>${tEsc(w.uid)}</code>\n💰 Amount: <b>${bdt(w.amount)}</b>\n🏦 Method: <b>${tEsc(w.method)}</b>\n📮 Address: <code>${tEsc(w.address)}</code>\n📊 Verified balance (আগে): ${bdt(bal)}` + (flagged ? '\n\n⚠️ <b>WARNING:</b> চাওয়া পরিমাণ যাচাইকৃত ব্যালেন্সের চেয়ে বেশি!' : '');
+    const sent = await tgTry('sendMessage', { chat_id: TGE.chan, text, parse_mode:'HTML', reply_markup:{ inline_keyboard:[[{ text:'✅ Approve', callback_data:'wd:a:' + snap.id }, { text:'❌ Reject', callback_data:'wd:r:' + snap.id }]] } });
+    await ref.update({ verifiedBalance: bal, flagged, chText: text, chMsgId: sent ? sent.message_id : null });
+    if (l) tgDM(w.uid, l, { parse_mode:'HTML', text: `⏳ <b>আপনার Withdraw অনুরোধ জমা হয়েছে</b>\n\n💰 ${bdt(w.amount)}\n🏦 ${tEsc(w.method)} — <code>${tEsc(w.address)}</code>\n\nঅ্যাডমিন যাচাই করে শীঘ্রই জানাবে।` });
+    tgLog(`💸 Withdraw ${bdt(w.amount)} — ${w.name || w.uid}`);
+  }
+  if ((w.status === 'approved' || w.status === 'rejected') && !w.tgDone){
+    if (!await tgClaim(ref, 'tgDone')) return;
+    const ok = w.status === 'approved', l = await tgOf(w.uid);
+    if (l) tgDM(w.uid, l, { parse_mode:'HTML', text: ok
+      ? `✅ <b>Withdraw Approved!</b>\n\n💰 ${bdt(w.amount)}\n🏦 ${tEsc(w.method)} — <code>${tEsc(w.address)}</code>\n\nপেমেন্ট পাঠানো হয়েছে। ধন্যবাদ!`
+      : `❌ <b>Withdraw Rejected</b>\n\n💰 ${bdt(w.amount)}\n${w.note ? '📝 কারণ: ' + tEsc(w.note) + '\n' : ''}\nটাকা আপনার ব্যালেন্সে ফেরত এসেছে।` });
+    if (ok){
+      const name = (w.name || '').trim();
+      const masked = name ? (name.length > 2 ? name[0] + '***' + name.slice(-1) : name[0] + '***') : 'User';
+      await db.collection('payoutsFeed').add({ name: masked, amount: +w.amount, method: w.method, ts: TS() }).catch(() => {});
+    }
+    const fresh = (await ref.get()).data() || {};
+    if (fresh.chMsgId && fresh.chText) tgTry('editMessageText', { chat_id: TGE.chan, message_id: fresh.chMsgId, parse_mode:'HTML', text: fresh.chText + `\n\n${ok ? '✅ <b>APPROVED</b>' : '❌ <b>REJECTED</b>'} ${tEsc(fresh.reviewedVia || '(admin panel)')}`, reply_markup:{ inline_keyboard: [] } });
+    tgLog(`${ok ? '✅' : '❌'} Withdraw ${w.status}: ${w.name || w.uid}`);
+  }
+}
+async function hmacSha(keyBytes, msg){
+  const k = await crypto.subtle.importKey('raw', keyBytes, { name:'HMAC', hash:'SHA-256' }, false, ['sign']);
+  return new Uint8Array(await crypto.subtle.sign('HMAC', k, new TextEncoder().encode(msg)));
+}
+async function verifyInit(initData){
+  const p = new URLSearchParams(String(initData || '')), hash = p.get('hash'); p.delete('hash');
+  if (!hash) return null;
+  const str = [...p.entries()].sort((a, b) => a[0] < b[0] ? -1 : 1).map(([k, v]) => k + '=' + v).join('\n');
+  const secret = await hmacSha(new TextEncoder().encode('WebAppData'), TGE.tok);
+  const h = [...await hmacSha(secret, str)].map(b => b.toString(16).padStart(2, '0')).join('');
+  if (h !== hash || Date.now() / 1000 - (+p.get('auth_date') || 0) > 7 * 86400) return null;
+  try{ return JSON.parse(p.get('user')); }catch(e){ return null; }
+}
+async function tgPing(snap){
+  const p = snap.data();
+  const age = Date.now() - tsMs(p.ts);
+  if (age > 90000) { return snap.ref.delete().catch(() => {}); }
+  const l = await tgOf(p.to);
+  if (l && l.started){
+    const label = { msg: '💬 নতুন মেসেজ এসেছে', call: '📞 অডিও কল আসছে', vcall: '🎥 ভিডিও কল আসছে' }[p.kind] || '🔔 নতুন নোটিফিকেশন';
+    const st = (await db.collection('settings').doc('app').get()).data() || {};
+    const kb = st.appUrl && /^https:\/\//.test(st.appUrl) ? { reply_markup: { inline_keyboard: [[{ text: '🚀 Open App', web_app: { url: st.appUrl } }]] } } : {};
+    tgTry('sendMessage', { chat_id: l.tgId, parse_mode: 'HTML', text: `${label}\n\n👤 ${tEsc(p.fromName || 'একজন ইউজার')} থেকে।\nএখনই অ্যাপ খুলুন।`, ...kb });
+  }
+  snap.ref.delete().catch(() => {});
+}
+async function tgLinkReq(snap){
+  const uid = snap.id, u = await verifyInit(snap.data().initData);
+  if (u && u.id){
+    const tgId = String(u.id), old = await db.collection('tgLinks').where('tgId', '==', tgId).get(), b = db.batch();
+    let started = false;
+    try{ await tgApi('sendChatAction', { chat_id: tgId, action:'typing' }); started = true; }catch(e){}
+    old.forEach(d => { if (d.id !== uid) b.delete(d.ref); });
+    b.set(db.collection('tgLinks').doc(uid), { tgId, tgName: u.username || '', name: [u.first_name, u.last_name].filter(Boolean).join(' '), photo: /^https:\/\//.test(String(u.photo_url||'')) ? u.photo_url : '', started, ts: TS() }, { merge:true });
+    await b.commit(); cache.tg[uid] = { tgId, tgName: u.username || '', photo: u.photo_url || '', started };
+    tgLog(`🔗 Telegram linked: ${u.first_name || ''} (${tgId}) — ইনবক্সে মেসেজ ${started ? 'যাবে ✅' : 'যাবে না ❌ (বটে START দিতে হবে)'}`);
+  } else {
+    tgLog('⚠ Telegram যাচাই ব্যর্থ (Token ঠিক আছে? অ্যাপ Telegram এর ভেতর থেকে খোলা?)');
+  }
+  await snap.ref.delete().catch(() => {});
+}
+async function saveBot(){
+  const t = $('bt_tok').value.trim(), ch = $('bt_ch').value.trim(), un = $('bt_un').value.trim().replace(/^@/, '');
+  if (t && !/^\d{6,12}:[A-Za-z0-9_-]{30,}$/.test(t)) return toast('Token ফরম্যাট ঠিক নয়', 'err');
+  if (!/^(-?\d{5,20}|@\w{4,})$/.test(ch)) return toast('Channel ID ঠিক নয় (যেমন -1001234567890)', 'err');
+  if (!/^[A-Za-z0-9_]{4,40}$/.test(un)) return toast('Bot username ঠিক নয়', 'err');
+  try{
+    await db.collection('private').doc('bot').set({ channelId: ch, botUsername: un, ...(t ? { token: t } : {}) }, { merge:true });
+    await db.collection('settings').doc('app').set({ botUsername: un }, { merge:true });
+    $('bt_tok').value = ''; toast('সেভ হয়েছে, বট চালু হচ্ছে…'); await tgBoot();
+    setTimeout(() => go('settings'), 1500);
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+async function testBot(){
+  if (!TGE.tok) return toast('আগে Token সেভ করুন', 'err');
+  try{
+    const me = await tgApi('getMe');
+    await tgApi('sendMessage', { chat_id: TGE.chan, text: '✅ Test: @' + me.username + ' চ্যানেলে মেসেজ পাঠাতে পারছে।' });
+    await tgApi('getChatAdministrators', { chat_id: TGE.chan });
+    toast('✅ সব ঠিক আছে — চ্যানেলে টেস্ট মেসেজ গেছে');
+  }catch(e){ toast('❌ ' + e.message + ' (বট চ্যানেলের অ্যাডমিন?)', 'err'); }
+}
+function copyRules(){ const t = $('rulesBox'); t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ document.execCommand('copy'); } toast('Rules কপি হয়েছে ✅'); }
+
+/* ═══════════════ USER BALANCE (admin) ═══════════════ */
+async function userBal(uid, excludeId){
+  const g = n => db.collection(n).where('uid','==',uid).get();
+  const [td,av,bo,pu,rb,aj,wd,gw] = await Promise.all(['taskDone','adViews','bonuses','promoUse','refBonuses','adjustments','withdrawals'].map(g).concat(db.collection('gameWins').where('uid','==',uid).get().catch(() => ({ forEach(){} }))));
+  let e = 0, sp = 0;
+  [td,av,bo,pu,gw].forEach(s => s.forEach(d => e += +d.data().reward || 0));
+  [rb,aj].forEach(s => s.forEach(d => e += +d.data().amount || 0));
+  wd.forEach(d => { if (d.id !== excludeId && d.data().status !== 'rejected') sp += +d.data().amount || 0; });
+  return Math.round((e - sp) * 100) / 100;
+}
+async function adjustBal(uid){
+  const u = cache.users.find(x => x.id === uid) || {};
+  let cur = 0;
+  try{ cur = await userBal(uid); }catch(e){ return toast('ব্যালেন্স পড়া যায়নি: '+e.message, 'err'); }
+  const v = prompt(`${u.name || uid}\nবর্তমান ব্যালেন্স: ৳${cur.toFixed(2)}\n\nকত টাকা যোগ করবেন? (কমাতে মাইনাস দিন, যেমন -2)`, '');
+  if (v === null) return;
+  const amt = Math.round(parseFloat(v) * 100) / 100;
+  if (!isFinite(amt) || amt === 0 || Math.abs(amt) > 100000) return toast('সঠিক পরিমাণ দিন', 'err');
+  const note = (prompt('কারণ (optional):', '') || '').slice(0, 120);
+  const ok = await confirmDialog('Balance পরিবর্তন?', `${u.name || uid}: ${amt > 0 ? '+' : ''}${amt.toFixed(2)} (নতুন ব্যালেন্স ≈ ৳${Math.max(0, cur + amt).toFixed(2)})`, 'Confirm');
+  if (!ok) return;
+  try{
+    await addDoc('adjustments', { uid, amount: amt, note, by: (auth.currentUser?.email || '') });
+    toast(`✅ ব্যালেন্স ${amt > 0 ? 'যোগ' : 'কমানো'} হয়েছে`);
+    publishLeaderboard(true);
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ CHATS & CALLS (admin) ═══════════════ */
+const nameOf = id => (cache.users.find(u => u.id === id)?.name) || String(id).slice(0,8)+'…';
+async function viewChats(){
+  let chats = [], calls = [];
+  try{
+    const [c1, c2] = await Promise.all([
+      db.collection('chats').orderBy('ts','desc').limit(200).get(),
+      db.collection('callLogs').orderBy('ts','desc').limit(300).get()
+    ]);
+    chats = c1.docs.map(d => ({ id:d.id, ...d.data() }));
+    calls = c2.docs.map(d => ({ id:d.id, ...d.data() }));
+  }catch(e){ console.warn('chats load:', e.message); }
+  window.__chats = chats;
+  const evLabel = { offer:'📞 Call started', answer:'✅ Call answered', end:'⏹ Call ended', busy:'🚫 Busy/Declined' };
+  return `
+    ${viewHead('🛡️','Chats & Calls','অপব্যবহার ও প্রতারণা তদন্তের জন্য সংরক্ষিত লগ',
+      `<span class="pill-stat">${chats.length} Chats</span><span class="pill-stat info">${calls.length} Call events</span>`)}
+    <div class="notice"><span class="em">🔒</span><div>এই তথ্য শুধু অ্যাডমিনের জন্য। কেউ অপরাধ বা প্রতারণা করলে এখান থেকে প্রমাণ দেখা যাবে। ইউজাররা অ্যাপে এই নোটিশ দেখতে পায়। <b>কলের অডিও রেকর্ড হয় না</b> — শুধু কে কাকে কখন কল করেছে তা সংরক্ষিত হয়।</div></div>
+    <div class="card">
+      <div class="field"><label>🔍 ইউজারের নাম দিয়ে খুঁজুন</label><input id="chq" oninput="filterChats()" placeholder="নাম লিখুন…"></div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">💬</span> Conversations</h3>
+      <div id="chList">${chatListHtml(chats)}</div>
+    </div>
+    <div class="card" id="chView" style="display:none"></div>
+    <div class="card">
+      <h3><span class="ic">📞</span> Call Logs (সর্বশেষ ${calls.length})</h3>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Time</th><th>From</th><th>To</th><th>Event</th><th>Type</th><th>Duration</th></tr></thead>
+        <tbody>${calls.map(c => `<tr>
+          <td>${c.ts ? new Date(tsMs(c.ts)).toLocaleString() : '—'}</td>
+          <td>${esc(nameOf(c.from))}</td><td>${esc(nameOf(c.to))}</td>
+          <td>${evLabel[c.ev] || esc(c.ev)}</td><td>${c.mode === 'video' ? '🎥 Video' : '🎙 Audio'}</td><td>${c.durationSec ? Math.floor(c.durationSec/60)+'m '+(c.durationSec%60)+'s' : '—'}</td></tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">📞</span>কোনো কল লগ নেই</td></tr>'}
+        </tbody></table></div>
+    </div>`;
+}
+function chatListHtml(chats, q){
+  q = (q || '').toLowerCase();
+  const rows = chats.filter(c => !q || (c.members || []).some(m => nameOf(m).toLowerCase().includes(q)));
+  return rows.map(c => `
+    <div class="row-act" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #e5e7eb;flex-wrap:wrap">
+      <div><b>${esc(nameOf((c.members||[])[0]))}</b> ↔ <b>${esc(nameOf((c.members||[])[1]))}</b><br>
+      <small style="opacity:.7">${esc(c.last || '')} · ${c.ts ? new Date(tsMs(c.ts)).toLocaleString() : ''}</small></div>
+      <button class="btn sm blue" onclick="openChatLog('${esc(c.id)}')">👁 Read</button>
+    </div>`).join('') || '<div class="empty"><span class="em">💬</span>কোনো চ্যাট নেই</div>';
+}
+function filterChats(){ $('chList').innerHTML = chatListHtml(window.__chats || [], $('chq').value); }
+async function openChatLog(id){
+  const box = $('chView'); box.style.display = 'block'; box.innerHTML = '<div class="loading">Loading…</div>';
+  box.scrollIntoView({ behavior:'smooth' });
+  try{
+    const s = await db.collection('chats').doc(id).collection('msgs').orderBy('ts','asc').limit(500).get();
+    const ms = s.docs.map(d => d.data());
+    const m0 = (window.__chats.find(c => c.id === id)?.members) || [];
+    box.innerHTML = `<h3><span class="ic">💬</span> ${esc(nameOf(m0[0]))} ↔ ${esc(nameOf(m0[1]))} (${ms.length} msgs)</h3>
+      <div style="max-height:420px;overflow:auto;display:flex;flex-direction:column;gap:6px">
+      ${ms.map(m => `<div style="padding:8px 12px;border-radius:12px;background:${m.from === m0[0] ? '#e0ecfe' : '#fef3c7'};max-width:85%;align-self:${m.from === m0[0] ? 'flex-start' : 'flex-end'}">
+        <small style="opacity:.7"><b>${esc(nameOf(m.from))}</b> · ${m.ts ? new Date(tsMs(m.ts)).toLocaleString() : ''}</small><div>${esc(m.t || (m.m ? '[' + ({img:'Photo',vid:'Video',aud:'Voice message'}[m.m.type] || 'Media') + ']' : ''))}</div></div>`).join('') || '<div class="empty">কোনো মেসেজ নেই</div>'}
+      </div>`;
+  }catch(e){ box.innerHTML = '<div class="empty">লোড ব্যর্থ: '+esc(e.message)+'</div>'; }
+}
+
+/* ═══════════════ ADS ═══════════════ */
+function viewAds(){
+  return `
+    ${viewHead('💵','Ads','বিজ্ঞাপন যোগ, এডিট, ডিলিট',
+      `<span class="pill-stat">${cache.ads.length} Total</span>
+       <span class="pill-stat info">${cache.ads.filter(a=>a.active!==false).length} Active</span>`
+    )}
+    <div class="card">
+      <h3 class="blue"><span class="ic">➕</span> নতুন Ad</h3>
+      <div class="form-grid">
+        <div class="field"><label>TITLE</label><input id="ad_t" placeholder="Ad title"></div>
+        <div class="field"><label>REWARD (BDT)</label><input id="ad_r" type="number" step="0.01" value="0.02"></div>
+        <div class="field"><label>SECONDS</label><input id="ad_s" type="number" value="13"></div>
+        <div class="field"><label>AD NETWORK</label>
+          <select id="ad_n"><option value="taddy">📣 Taddy (taddy.pro)</option><option value="link">🔗 Direct Link</option></select>
+        </div>
+        <div class="field"><label>TADDY PUB ID (Taddy এর জন্য)</label><input id="ad_w" value="d52908775fd0f216c33e24a730d4c9b5" placeholder="Public ID"></div>
+        <div class="field"><label>URL (Direct Link এর জন্য)</label><input id="ad_u" placeholder="https://..."></div>
+        <div class="field"><label>STATUS</label>
+          <select id="ad_a"><option value="true">Active</option><option value="false">Inactive</option></select>
+        </div>
+      </div>
+      <button class="btn blue" style="margin-top:16px" onclick="addAd()">➕ Add Ad</button>
+    </div>
+    <div class="card">
+      <h3><span class="ic">💵</span> সব Ads (${cache.ads.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Reward</th><th>Sec</th><th>Network</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${cache.ads.map(a => `
+            <tr>
+              <td><b>${esc(a.title || '—')}</b></td>
+              <td>৳${(+a.reward||0).toFixed(2)}</td>
+              <td>${a.seconds || 10}s</td><td><span class="chip ${a.net==='taddy'?'blue':''}">${a.net==='taddy'?'Taddy':'Link'}</span></td>
+              <td>${a.active !== false ? '<span class="badge ok">Active</span>' : '<span class="badge rej">Off</span>'}</td>
+              <td class="row-act">
+                <button class="btn sm ghost" onclick="toggleActive('ads','${a.id}',${a.active===false})">${a.active===false?'Enable':'Disable'}</button>
+                <button class="btn sm red" onclick="delRow('ads','${a.id}')">🗑</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">📭</span>কোনো Ad নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function addAd(){
+  const title   = $('ad_t').value.trim();
+  const reward  = +$('ad_r').value;
+  const seconds = +$('ad_s').value;
+  const url     = $('ad_u').value.trim();
+  const net     = $('ad_n').value;
+  const wid     = $('ad_w').value.trim();
+  const active  = $('ad_a').value === 'true';
+  if (!title) return toast('Title দরকার', 'err');
+  if (net === 'taddy' && !/^[A-Za-z0-9]{8,64}$/.test(wid)) return toast('Taddy এর জন্য সঠিক Pub ID দিন', 'err');
+  if (net === 'link' && !/^https?:\/\//i.test(url)) return toast('Direct Link এর জন্য সঠিক URL দিন', 'err');
+  try{
+    await addDoc('ads', { title, reward, seconds, url, net, pid: net === 'taddy' ? wid : '', active, order: Date.now() });
+    toast('Ad যোগ হয়েছে ✅');
+    await refreshAll(); go('ads');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ TASKS ═══════════════ */
+function viewTasks(){
+  return `
+    ${viewHead('✅','Tasks','Web, YouTube, Telegram টাস্ক',
+      `<span class="pill-stat">${cache.tasks.length} Total</span>
+       <span class="pill-stat info">${cache.tasks.filter(t=>t.active!==false).length} Active</span>`
+    )}
+    <div class="card">
+      <h3 class="blue"><span class="ic">➕</span> নতুন Task</h3>
+      <div class="form-grid">
+        <div class="field"><label>TITLE</label><input id="tk_t" placeholder="Task title"></div>
+        <div class="field"><label>TYPE</label>
+          <select id="tk_ty">
+            <option value="web">🌐 Web</option>
+            <option value="youtube">▶️ YouTube</option>
+            <option value="telegram">✈️ Telegram</option>
+            <option value="visit">🔗 Visit</option>
+          </select>
+        </div>
+        <div class="field"><label>REWARD (BDT)</label><input id="tk_r" type="number" step="0.01" value="0.05"></div>
+        <div class="field"><label>SECONDS</label><input id="tk_s" type="number" value="10"></div>
+        <div class="field full"><label>URL</label><input id="tk_u" placeholder="https://..."></div>
+        <div class="field full"><label>DESCRIPTION</label><input id="tk_d" placeholder="Optional note"></div>
+      </div>
+      <button class="btn blue" style="margin-top:16px" onclick="addTask()">➕ Add Task</button>
+    </div>
+    <div class="card">
+      <h3><span class="ic">✅</span> সব Tasks (${cache.tasks.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Type</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${cache.tasks.map(t => `
+            <tr>
+              <td><b>${esc(t.title || '—')}</b></td>
+              <td><span class="chip ${t.type==='youtube'?'red':t.type==='telegram'?'blue':t.type==='visit'?'amber':''}">${esc(t.type || '')}</span></td>
+              <td>৳${(+t.reward||0).toFixed(2)}</td>
+              <td>${t.active !== false ? '<span class="badge ok">Active</span>' : '<span class="badge rej">Off</span>'}</td>
+              <td class="row-act">
+                <button class="btn sm ghost" onclick="toggleActive('tasks','${t.id}',${t.active===false})">${t.active===false?'Enable':'Disable'}</button>
+                <button class="btn sm red" onclick="delRow('tasks','${t.id}')">🗑</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📭</span>কোনো Task নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function addTask(){
+  const title   = $('tk_t').value.trim();
+  const type    = $('tk_ty').value;
+  const reward  = +$('tk_r').value;
+  const seconds = +$('tk_s').value;
+  const url     = $('tk_u').value.trim();
+  const desc    = $('tk_d').value.trim();
+  if (!title || !url) return toast('Title ও URL দরকার', 'err');
+  try{
+    await addDoc('tasks', { title, type, reward, seconds, url, desc, active: true, order: Date.now() });
+    toast('Task যোগ হয়েছে ✅');
+    await refreshAll(); go('tasks');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ BANNERS ═══════════════ */
+function viewBanners(){
+  return `
+    ${viewHead('🎨','Banners','হোম স্ক্রিনের ব্যানার',
+      `<span class="pill-stat">${cache.banners.length} Total</span>`
+    )}
+    <div class="card">
+      <h3 class="purple"><span class="ic">➕</span> নতুন Banner</h3>
+      <div class="form-grid">
+        <div class="field"><label>TITLE</label><input id="bn_t"></div>
+        <div class="field"><label>TEXT</label><input id="bn_x"></div>
+        <div class="field"><label>THEME</label>
+          <select id="bn_th">
+            <option value="green">🟢 Green</option>
+            <option value="blue">🔵 Blue</option>
+            <option value="amber">🟡 Amber</option>
+            <option value="pink">🌸 Pink</option>
+          </select>
+        </div>
+        <div class="field"><label>LINK</label><input id="bn_l" placeholder="https://..."></div>
+        <div class="field"><label>IMAGE URL (optional)</label><input id="bn_i"></div>
+        <div class="field"><label>ORDER</label><input id="bn_o" type="number" value="0"></div>
+      </div>
+      <button class="btn purple" style="margin-top:16px" onclick="addBanner()">➕ Add Banner</button>
+    </div>
+    <div class="card">
+      <h3><span class="ic">🎨</span> সব Banners (${cache.banners.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Theme</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${cache.banners.map(b => `
+            <tr>
+              <td><b>${esc(b.title || '—')}</b></td>
+              <td><span class="chip ${b.theme==='blue'?'blue':b.theme==='amber'?'amber':b.theme==='pink'?'pink':''}">${esc(b.theme || '')}</span></td>
+              <td>${+b.order || 0}</td>
+              <td>${b.active !== false ? '<span class="badge ok">Active</span>' : '<span class="badge rej">Off</span>'}</td>
+              <td class="row-act">
+                <button class="btn sm ghost" onclick="toggleActive('banners','${b.id}',${b.active===false})">${b.active===false?'Enable':'Disable'}</button>
+                <button class="btn sm red" onclick="delRow('banners','${b.id}')">🗑</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📭</span>কোনো Banner নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function addBanner(){
+  const title = $('bn_t').value.trim();
+  const text  = $('bn_x').value.trim();
+  const theme = $('bn_th').value;
+  const link  = $('bn_l').value.trim();
+  const img   = $('bn_i').value.trim();
+  const order = +$('bn_o').value || 0;
+  if (!title) return toast('Title দরকার', 'err');
+  try{
+    await addDoc('banners', { title, text, theme, link, img, order, active: true });
+    toast('Banner যোগ হয়েছে ✅');
+    await refreshAll(); go('banners');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ WITHDRAWALS ═══════════════ */
+function viewWithdrawals(){
+  const pend = cache.withdrawals.filter(w => w.status === 'pending');
+  const done = cache.withdrawals.filter(w => w.status !== 'pending');
+  return `
+    ${viewHead('👛','Withdrawals','পেমেন্ট রিকোয়েস্ট অ্যাপ্রুভ',
+      `<span class="pill-stat warn">${pend.length} Pending</span>
+       <span class="pill-stat info">${done.length} Done</span>`
+    )}
+    <div class="card">
+      <h3 class="amber"><span class="ic">⏳</span> Pending (${pend.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Address</th><th>Time</th><th>Actions</th></tr></thead>
+          <tbody>${pend.map(w => `
+            <tr>
+              <td><b>${esc(w.name || w.uid)}</b></td>
+              <td><b style="color:#b45309">৳${(+w.amount).toFixed(2)}</b>${w.flagged ? `<br><span class="badge rej" title="যাচাইকৃত ব্যালেন্স ৳${(+w.verifiedBalance||0).toFixed(2)}">⚠️ Balance কম (৳${(+w.verifiedBalance||0).toFixed(2)})</span>` : (w.verifiedBalance!=null ? `<br><small style="opacity:.65">✔ verified ৳${(+w.verifiedBalance).toFixed(2)}</small>` : '')}</td>
+              <td><span class="chip ${w.method==='Nagad'?'amber':'blue'}">${esc(w.method)}</span></td>
+              <td><span class="code-snip">${esc(w.address)}</span></td>
+              <td>${w.ts ? new Date(tsMs(w.ts)).toLocaleString() : '—'}</td>
+              <td class="row-act">
+                <button class="btn sm" onclick="wdAct('${w.id}','approved')">✓ Approve</button>
+                <button class="btn sm red" onclick="wdAct('${w.id}','rejected')">✗ Reject</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">✅</span>Pending নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">📜</span> History (${done.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody>${done.slice(0,150).map(w => `
+            <tr>
+              <td>${esc(w.name || w.uid)}</td>
+              <td>৳${(+w.amount).toFixed(2)}</td>
+              <td><span class="chip ${w.method==='Nagad'?'amber':'blue'}">${esc(w.method)}</span></td>
+              <td>${w.status === 'approved' ? '<span class="badge ok">Approved</span>' : '<span class="badge rej">Rejected</span>'}${w.reviewedVia ? ` <small style="opacity:.6">(${esc(w.reviewedVia)})</small>` : ''}</td>
+              <td>${w.ts ? new Date(tsMs(w.ts)).toLocaleString() : '—'}</td>
+            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📜</span>—</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function wdAct(id, status){
+  const ok = await confirmDialog(
+    status === 'approved' ? 'Approve Request?' : 'Reject Request?',
+    status === 'approved' ? 'এই রিকোয়েস্ট অ্যাপ্রুভ করবেন?' : 'এই রিকোয়েস্ট রিজেক্ট করবেন?',
+    status === 'approved' ? '✓ Approve' : '✗ Reject'
+  );
+  if (!ok) return;
+  const note = status === 'rejected' ? (prompt('কারণ লিখুন (optional):') || '') : '';
+  try{
+    await updateDoc('withdrawals', id, { status, note, reviewedAt: TS() });
+    toast(status==='approved' ? '✓ Approve হয়েছে' : '✗ Reject হয়েছে');
+    publishLeaderboard(true);
+    await refreshAll(); go('withdrawals');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ PROMOS ═══════════════ */
+function viewPromos(){
+  return `
+    ${viewHead('🎟️','Promo Codes','সিক্রেট প্রোমো কোড তৈরি',
+      `<span class="pill-stat">${cache.promos.length} Codes</span>`
+    )}
+    <div class="card">
+      <h3 class="purple"><span class="ic">➕</span> নতুন Promo Code</h3>
+      <div class="form-grid">
+        <div class="field"><label>CODE (A-Z, 0-9)</label><input id="pr_c" maxlength="20" style="text-transform:uppercase" placeholder="WELCOME"></div>
+        <div class="field"><label>REWARD (BDT)</label><input id="pr_r" type="number" step="0.01" value="0.10"></div>
+      </div>
+      <button class="btn purple" style="margin-top:16px" onclick="addPromo()">➕ Add Code</button>
+    </div>
+    <div class="card">
+      <h3><span class="ic">🎟️</span> সব Codes (${cache.promos.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>${cache.promos.map(p => `
+            <tr>
+              <td><span class="code-snip">${esc(p.id)}</span></td>
+              <td>৳${(+p.reward||0).toFixed(2)}</td>
+              <td>${p.active !== false ? '<span class="badge ok">Active</span>' : '<span class="badge rej">Off</span>'}</td>
+              <td class="row-act">
+                <button class="btn sm ghost" onclick="togglePromo('${p.id}',${p.active===false})">${p.active===false?'Enable':'Disable'}</button>
+                <button class="btn sm red" onclick="delRow('promos','${p.id}')">🗑</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="4" class="empty"><span class="em">🎟️</span>কোনো কোড নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function addPromo(){
+  const code = $('pr_c').value.trim().toUpperCase();
+  const reward = +$('pr_r').value;
+  if (!/^[A-Z0-9]{3,20}$/.test(code)) return toast('কোড ৩-২০ অক্ষরের A-Z, 0-9 হতে হবে', 'err');
+  try{
+    await db.collection('promos').doc(code).set({ reward, active: true, ts: TS() }, { merge: true });
+    toast('প্রোমো কোড যোগ হয়েছে ✅');
+    await refreshAll(); go('promos');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+async function togglePromo(code, active){
+  try{
+    await db.collection('promos').doc(code).set({ active }, { merge: true });
+    await refreshAll(); go('promos');
+  }catch(e){ toast(e.message, 'err'); }
+}
+
+/* ═══════════════ ANNOUNCEMENTS ═══════════════ */
+function viewAnnouncements(){
+  return `
+    ${viewHead('📢','Announcements','পাবলিক নোটিশ প্রকাশ',
+      `<span class="pill-stat">${cache.announcements.length} Total</span>`
+    )}
+    <div class="card">
+      <h3 class="amber"><span class="ic">📢</span> নতুন Announcement</h3>
+      <div class="form-grid">
+        <div class="field full"><label>TITLE</label><input id="an_t" placeholder="যেমন: নতুন অ্যাড এসেছে!"></div>
+        <div class="field full"><label>MESSAGE</label><textarea id="an_b" placeholder="সংক্ষিপ্ত বার্তা…"></textarea></div>
+      </div>
+      <button class="btn amber" style="margin-top:16px" onclick="addAnn()">📢 Publish</button>
+    </div>
+    <div class="card">
+      <h3><span class="ic">📰</span> Recent (${cache.announcements.length})</h3>
+      ${cache.announcements.slice(0,30).map(a => `
+        <div class="qitem">
+          <b>${esc(a.title || '—')}</b>
+          <div class="qmeta">🕒 ${a.ts ? new Date(tsMs(a.ts)).toLocaleString() : ''}</div>
+          <div class="qtext">${esc(a.body || '')}</div>
+          <button class="btn sm red" onclick="delRow('announcements','${a.id}')">🗑 Delete</button>
+        </div>`).join('') || '<div class="empty"><span class="em">📭</span>কিছু নেই</div>'}
+    </div>
+  `;
+}
+async function addAnn(){
+  const title = $('an_t').value.trim();
+  const body  = $('an_b').value.trim();
+  if (!title || !body) return toast('Title ও Message দরকার', 'err');
+  try{
+    await addDoc('announcements', { title, body });
+    toast('প্রকাশিত ✅');
+    await refreshAll(); go('announce');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ SUPPORT ═══════════════ */
+function viewSupport(){
+  const open = cache.supportQ.filter(q => !q.reply);
+  const done = cache.supportQ.filter(q => q.reply);
+  return `
+    ${viewHead('🎧','Support','প্রশ্নের উত্তর + FAQ',
+      `<span class="pill-stat warn">${open.length} Pending</span>
+       <span class="pill-stat info">${cache.faq.length} FAQ</span>`
+    )}
+    <div class="card">
+      <h3 class="cyan"><span class="ic">❓</span> অপেক্ষমাণ প্রশ্ন (${open.length})</h3>
+      ${open.map(q => `
+        <div class="qitem">
+          <b>👤 ${esc(q.name || q.uid)}</b>
+          <div class="qmeta">🕒 ${q.ts ? new Date(tsMs(q.ts)).toLocaleString() : ''}</div>
+          <div class="qtext">❓ ${esc(q.q)}</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="rp_${q.id}" placeholder="উত্তর লিখুন…" style="flex:1;min-width:180px;padding:11px 14px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface2);font-size:13px">
+            <button class="btn sm" onclick="replyQ('${q.id}')">Reply</button>
+            <button class="btn sm red" onclick="delRow('supportQ','${q.id}')">🗑</button>
+          </div>
+        </div>`).join('') || '<div class="empty"><span class="em">✅</span>কিছু নেই</div>'}
+    </div>
+    <div class="card">
+      <h3><span class="ic">✅</span> উত্তর দেওয়া হয়েছে (${done.length})</h3>
+      ${done.slice(0,20).map(q => `
+        <div class="qitem">
+          <b>❓ Q:</b> ${esc(q.q)}
+          <div class="qtext">✅ <b>A:</b> ${esc(q.reply)}</div>
+        </div>`).join('') || '<div class="empty"><span class="em">📭</span>কিছু নেই</div>'}
+    </div>
+    <div class="card">
+      <h3 class="purple"><span class="ic">📚</span> FAQ Bot (${cache.faq.length})</h3>
+      <div class="form-grid">
+        <div class="field full"><label>নতুন FAQ Question</label><input id="fq_q" placeholder="যেমন: কিভাবে withdraw করবো?"></div>
+        <div class="field full"><label>Answer</label><textarea id="fq_a" placeholder="উত্তর…"></textarea></div>
+      </div>
+      <button class="btn purple" style="margin-top:12px" onclick="addFaq()">➕ Add FAQ</button>
+      <div class="divider"></div>
+      ${cache.faq.map(f => `
+        <div class="qitem">
+          <b>${esc(f.q)}</b>
+          <div class="qtext" style="color:var(--mute)">${esc(f.a)}</div>
+          <button class="btn sm red" onclick="delRow('faq','${f.id}')">🗑</button>
+        </div>`).join('') || '<div class="empty"><span class="em">📚</span>কোনো FAQ নেই</div>'}
+    </div>
+  `;
+}
+async function replyQ(id){
+  const v = $('rp_' + id).value.trim();
+  if (!v) return toast('উত্তর লিখুন', 'err');
+  try{
+    await updateDoc('supportQ', id, { reply: v, repliedAt: TS() });
+    toast('উত্তর পাঠানো হয়েছে ✅');
+    await refreshAll(); go('support');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+async function addFaq(){
+  const q = $('fq_q').value.trim();
+  const a = $('fq_a').value.trim();
+  if (!q || !a) return toast('প্রশ্ন ও উত্তর দরকার', 'err');
+  try{
+    await addDoc('faq', { q, a, active: true });
+    toast('FAQ যোগ হয়েছে ✅');
+    await refreshAll(); go('support');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ SETTINGS ═══════════════ */
+async function viewSettings(){
+  let s = {};
+  try{
+    const d = await db.collection('settings').doc('app').get();
+    s = d.exists ? d.data() : {};
+  } catch(e){ console.warn('settings load:', e.message); }
+  let bc = {};
+  try{ const d = await db.collection('private').doc('bot').get(); bc = d.exists ? d.data() : {}; }catch(e){}
+  let ai = {};
+  try{ const d = await db.collection('settings').doc('ai').get(); ai = d.exists ? d.data() : {}; }catch(e){ console.warn('ai load:', e.message); }
+  return `
+    ${viewHead('⚙️','Settings','অ্যাপ কনফিগারেশন + Google Sheet')}
+    <div class="notice">
+      <span class="em">💡</span>
+      <div><b>মনে রাখবেন:</b> এখানে পরিবর্তন করলে সাথে সাথে ইউজার অ্যাপে (tech.html) রিয়েল-টাইমে আপডেট হবে।</div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">⚙️</span> App Settings</h3>
+      <div class="form-grid">
+        <div class="field"><label>AD TIMER (SECONDS)</label><input id="st_ad" type="number" value="${s.adWait || 13}"></div>
+        <div class="field"><label>DAILY AD TARGET</label><input id="st_at" type="number" value="${s.adTarget || 30}"></div>
+        <div class="field"><label>ADS PER HOUR LIMIT</label><input id="st_ah" type="number" value="${s.adHourly || 10}"></div>
+        <div class="field"><label>DAILY BONUS (BDT)</label><input id="st_bn" type="number" step="0.01" value="${s.dailyBonus || 0.10}"></div>
+        <div class="field"><label>DAILY BONUS: AD দেখিয়ে দেবে?</label><select id="st_bad"><option value="true" ${s.dailyBonusAd !== false ? 'selected' : ''}>চালু (Ad দেখার পর বোনাস)</option><option value="false" ${s.dailyBonusAd === false ? 'selected' : ''}>বন্ধ (সরাসরি বোনাস)</option></select></div>
+        <div class="field"><label>REFERRAL %</label><input id="st_rf" type="number" value="${s.ref || 8}"></div>
+        <div class="field"><label>MIN WITHDRAW (BDT)</label><input id="st_mw" type="number" step="0.01" value="${s.minWithdraw || 0.50}"></div>
+        <div class="field"><label>SUPPORT HOURS</label><input id="st_hr" value="${esc(s.hours || '10:00 AM to 10:00 PM')}"></div>
+        <div class="field"><label>WITHDRAW (উত্তোলন)</label><select id="st_wo"><option value="true" ${s.withdrawOn !== false ? 'selected' : ''}>✅ ON — চালু</option><option value="false" ${s.withdrawOn === false ? 'selected' : ''}>⛔ OFF — বন্ধ</option></select></div>
+        <div class="field"><label>REFER REWARD (BDT প্রতি রেফারে)</label><input id="st_rr" type="number" step="0.01" min="0" value="${s.refReward ?? 0.05}"></div>
+        <div class="field"><label>MINI APP LINK (বটের Open বাটনের জন্য)</label><input id="st_au" value="${esc(s.appUrl || '')}" placeholder="https://your-app.web.app"></div>
+        <div class="field full"><label>PAYMENT METHODS (নাম + লোগো)</label>
+          <div id="pmList">${(Array.isArray(s.payList) && s.payList.length ? s.payList : String(s.payMethods || 'Bkash, Nagad').split(',').map(x => ({ name:x.trim(), logo:'' })).filter(x => x.name)).map(payRowHtml).join('')}</div>
+          <button type="button" class="btn sm ghost" style="margin-top:6px" onclick="addPayRow()">➕ Method যোগ করুন</button>
+        </div>
+        <div class="field"><label>OFFICIAL CHANNEL NAME</label><input id="st_cn" value="${esc(s.channelName || '')}" placeholder="Official Channel"></div>
+        <div class="field"><label>OFFICIAL CHANNEL LINK</label><input id="st_cu" value="${esc(s.channelUrl || '')}" placeholder="https://t.me/..."></div>
+        <div class="field"><label>DISCUSSION GROUP NAME</label><input id="st_gn" value="${esc(s.groupName || '')}" placeholder="Tech BD Income Group"></div>
+        <div class="field"><label>DISCUSSION GROUP LINK</label><input id="st_gu" value="${esc(s.groupUrl || '')}" placeholder="https://t.me/..."></div>
+        <div class="field full"><label>GROUP DESCRIPTION</label><input id="st_gd" value="${esc(s.groupDesc || '')}" placeholder="Talk with other members..."></div>
+        <div class="field full"><label>APP NEWS / UPDATE NOTE (AI দেখবে)</label><textarea id="st_nw">${esc(s.news || '')}</textarea></div>
+        <div class="field full"><label>CUSTOM KNOWLEDGE BASE (প্রতি লাইনে একটি নোট)</label><textarea id="st_kb">${esc(s.kb || '')}</textarea></div>
+      </div>
+      <button class="btn" style="margin-top:16px" onclick="saveSt()">💾 Save Settings</button>
+    </div>
+
+    <div class="card">
+      <h3 class="blue"><span class="ic">📊</span> Google Sheet Sync (ID Sell Auto-Save)</h3>
+      <div class="notice">
+        <span class="em">📌</span>
+        <div>
+          প্রতিটি ক্যাটাগরির জন্য আলাদা Google Sheet Web App URL দিন।<br>
+          ইউজার ID সাবমিট করলে সেই Sheet-এ অটোমেটিক <b>UID | PASSWORD | 2FA KEY</b> হিসেবে বসে যাবে।<br>
+          <b>কীভাবে URL পাবেন:</b> Google Sheet → Extensions → Apps Script → Deploy → New deployment → Web app → Anyone → Deploy → URL কপি।
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field full"><label>📘 FACEBOOK — Google Sheet Web App URL</label><input id="st_gs_fb" value="${esc(s.gsFb || '')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
+        <div class="field full"><label>📸 INSTAGRAM — Google Sheet Web App URL</label><input id="st_gs_ig" value="${esc(s.gsIg || '')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
+        <div class="field full"><label>✉️ GMAIL — Google Sheet Web App URL</label><input id="st_gs_gm" value="${esc(s.gsGm || '')}" placeholder="https://script.google.com/macros/s/.../exec"></div>
+      </div>
+      <button class="btn blue" style="margin-top:16px" onclick="saveSt()">💾 Save Google Sheet URLs</button>
+    </div>
+
+    <div class="card">
+      <h3><span class="ic">🤖</span> Telegram Bot (Withdraw নোটিফিকেশন, Refer, Broadcast)</h3>
+      <div class="notice"><span class="em">⚠️</span><div>বট <b>এই অ্যাডমিন পেজ খোলা থাকলে</b> চলে (কম্পিউটার বা ফোনের একটি ট্যাব খোলা রাখুন)। পেজ বন্ধ থাকলে নতুন রেফার ও withdraw নোটিফিকেশন জমে থাকে এবং পেজ খুললে প্রসেস হয়। Token শুধু অ্যাডমিনের জন্য সেভ হয়, ইউজার দেখতে পায় না।</div></div>
+      <div class="form-grid">
+        <div class="field full"><label>BOT TOKEN ${bc.token ? '(✅ সেভ আছে — বদলাতে নতুনটা দিন)' : ''}</label><input id="bt_tok" type="password" autocomplete="off" placeholder="${bc.token ? '••••••••••••' : '123456789:AA...'}"></div>
+        <div class="field"><label>CHANNEL ID</label><input id="bt_ch" value="${esc(bc.channelId || '-1004408557794')}"></div>
+        <div class="field"><label>BOT USERNAME (@ ছাড়া)</label><input id="bt_un" value="${esc(bc.botUsername || 'TECH_BD_INCOME_BOT')}"></div>
+      </div>
+      <div class="row-act" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" onclick="saveBot()">💾 Save & Start Bot</button>
+        <button class="btn ghost" onclick="testBot()">🧪 Test</button>
+        <button class="btn red" onclick="tgStop();toast('Bot বন্ধ হয়েছে')">⏹ Stop</button>
+      </div>
+      <div class="notice" style="margin-top:14px">
+        <span class="em">📊</span>
+        <div>
+          <b>Live status</b> — এই তিনটা ইউজার অ্যাপে তখনই দেখা যাবে যখন ইউজার <b>সত্যিই Telegram/https লিংক দিয়ে অ্যাপ খুলেছে এবং এই অ্যাডমিন পেজ খোলা ছিল</b>:<br>
+          🔗 Telegram যুক্ত অ্যাকাউন্ট: <b>${Object.keys(cache.tg).length}</b> জন${Object.keys(cache.tg).length === 0 ? ' <span style="color:#dc2626">— এখনো কেউ Telegram দিয়ে খোলেনি, তাই প্রোফাইল নামও বসবে না</span>' : ''}<br>
+          🏆 Leaderboard: ${cache.lbMeta ? `প্রকাশিত, ${cache.lbMeta.rows} জন, শেষ আপডেট ${cache.lbMeta.ts ? new Date(tsMs(cache.lbMeta.ts)).toLocaleString() : '—'}` : '<span style="color:#dc2626">কখনো Publish করা হয়নি — নিচের বাটনে চাপুন</span>'}<br>
+          ✅ Payment Proofs: <b>${cache.payoutCount ?? 0}</b> টা রেকর্ড${(cache.payoutCount ?? 0) === 0 ? ' <span style="color:#dc2626">— কোনো Withdraw এখনো Approve হয়নি, তাই খালি</span>' : ''}
+        </div>
+      </div>
+      <div style="margin-top:14px"><button id="lbBtn" class="btn ghost" onclick="publishLeaderboard()">🏆 Refresh Leaderboard</button><p style="opacity:.7;font-size:12px;margin:6px 0 0">ইউজার অ্যাপের Leaderboard পেজে এই তালিকা দেখাবে। সব ইউজারের ব্যালেন্স হিসাব করে, তাই সময় লাগতে পারে।</p></div>
+      <label style="display:block;margin:14px 0 6px;font-weight:700;font-size:12px">BOT LOG</label>
+      <pre id="tgLogBox" style="max-height:170px;overflow:auto;background:#0f172a;color:#cbd5e1;padding:10px;border-radius:12px;font-size:11px;white-space:pre-wrap">${esc(TGE.log.join('\n'))}</pre>
+    </div>
+    ${aiCard(ai, s)}
+    <div class="card">
+      <h3><span class="ic">📜</span> Firestore Rules (একবার সেট করতে হবে)</h3>
+      <div class="notice"><span class="em">🔐</span><div>Firebase Console → Firestore Database → <b>Rules</b> ট্যাবে সব মুছে এটা পেস্ট করে <b>Publish</b> দিন। এটা ছাড়া ইউজার নিজের ব্যালেন্স নিজে বানাতে পারবে।</div></div>
+      <textarea id="rulesBox" readonly style="min-height:200px;font-family:monospace;font-size:11px">${esc($('rulesTxt').textContent.trim())}</textarea>
+      <button class="btn ghost" style="margin-top:10px" onclick="copyRules()">📋 Copy Rules</button>
+    </div>
+    <div class="card">
+      <h3><span class="ic">ℹ️</span> Admin Info</h3>
+      <div class="form-grid">
+        <div class="field"><label>ADMIN EMAIL</label><input value="${ADMIN_EMAILS.join(', ')}" readonly></div>
+        <div class="field"><label>FIREBASE PROJECT</label><input value="${esc(FB_CONFIG.projectId)}" readonly></div>
+      </div>
+    </div>
+  `;
+}
+
+function payRowHtml(m){
+  const isData = m.logo && m.logo.startsWith('data:');
+  return `<div class="pm-row" ${isData ? `data-d="${esc(m.logo)}"` : ''} style="display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap">
+    <img class="pm-img" src="${esc(m.logo || '')}" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:contain;background:#eef2f7;${m.logo ? '' : 'visibility:hidden'}">
+    <input class="pm-n" placeholder="নাম (যেমন Bkash)" value="${esc(m.name || '')}" style="flex:1;min-width:110px">
+    <input class="pm-l" placeholder="লোগো URL (ঐচ্ছিক)" value="${isData ? '' : esc(m.logo || '')}" style="flex:1.5;min-width:140px" oninput="pmUrl(this)">
+    <label class="btn sm ghost" style="cursor:pointer;margin:0">📷 Upload<input type="file" accept="image/*" hidden onchange="pmFile(this)"></label>
+    <button type="button" class="btn sm red" onclick="this.closest('.pm-row').remove()">✕</button>
+  </div>`;
+}
+function addPayRow(){ if (document.querySelectorAll('#pmList .pm-row').length >= 8) return toast('সর্বোচ্চ ৮টি', 'err'); $('pmList').insertAdjacentHTML('beforeend', payRowHtml({})); }
+function pmUrl(inp){ const r = inp.closest('.pm-row'); delete r.dataset.d; const im = r.querySelector('.pm-img'); im.src = inp.value.trim(); im.style.visibility = inp.value.trim() ? 'visible' : 'hidden'; }
+function pmFile(inp){
+  const f = inp.files && inp.files[0]; if (!f) return;
+  const r = inp.closest('.pm-row'), im = new Image(), u = URL.createObjectURL(f);
+  im.onload = () => {
+    const c = document.createElement('canvas'); c.width = c.height = 96;
+    const x = c.getContext('2d'), k = Math.min(96 / im.width, 96 / im.height);
+    x.clearRect(0,0,96,96); x.drawImage(im, (96 - im.width*k)/2, (96 - im.height*k)/2, im.width*k, im.height*k);
+    let d = c.toDataURL('image/png'); if (d.length > 60000) d = c.toDataURL('image/jpeg', .85);
+    URL.revokeObjectURL(u);
+    if (d.length > 65000) return toast('ছবি অনেক বড়', 'err');
+    r.dataset.d = d; r.querySelector('.pm-l').value = '';
+    const p = r.querySelector('.pm-img'); p.src = d; p.style.visibility = 'visible';
+  };
+  im.onerror = () => toast('ছবি পড়া যায়নি', 'err');
+  im.src = u;
+}
+
+/* =============== GAME & EARN (Admin) =============== */
+function gameCard(s){
+  const on = s.gameOn !== false, ab = s.gameAdBefore !== false, aa = s.gameAdAfter !== false;
+  const rew = (s.gameReward === undefined || s.gameReward === null) ? 0.05 : s.gameReward;
+  const day = s.gameDaily || 10;
+  return `<div class="card">
+    <h3><span class="ic">🎮</span> Game & Earn</h3>
+    <div class="notice"><span class="em">ℹ️</span><div>
+      ইউজারের হোম পেজে "Play Game & Earn" কার্ড দেখাবে। ছোট ছোট লেভেলের বাবল শুটার গেম। প্রতিটা লেভেল জিতলে নিচের টাকা পাবে।<br>
+      বিজ্ঞাপন আপনার <b>Ads</b> পেজে যোগ করা নেটওয়ার্ক থেকেই আসে।<br>
+      ⚠️ প্রতিদিনের লিমিট (সর্বোচ্চ ৫০) ইউজারের অ্যাপে প্রয়োগ হয়। Firestore Rules আপডেট করা না থাকলে গেমের reward সেভ হবে না।
+    </div></div>
+    <div class="form-grid">
+      <div class="field"><label>প্রতি লেভেলে REWARD (BDT)</label><input id="gm_rew" type="number" step="0.01" min="0" value="${esc(String(rew))}"></div>
+      <div class="field"><label>দিনে সর্বোচ্চ কত লেভেলে টাকা (1-50)</label><input id="gm_day" type="number" min="1" max="50" value="${esc(String(day))}"></div>
+      <div class="field full"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="gm_on" ${on ? 'checked' : ''}> Game চালু</label></div>
+      <div class="field full"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="gm_ab" ${ab ? 'checked' : ''}> লেভেল শুরুর আগে Ad দেখাবে</label></div>
+      <div class="field full"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="gm_aa" ${aa ? 'checked' : ''}> লেভেল শেষে Ad দেখাবে (তারপর reward)</label></div>
+    </div>
+  </div>`;
+}
+const GAME_DEF = [{r:3,c:3,s:24},{r:4,c:3,s:27},{r:4,c:4,s:30},{r:5,c:4,s:34},{r:5,c:4,s:36},{r:6,c:5,s:40},{r:6,c:5,s:42},{r:7,c:5,s:46},{r:7,c:6,s:49},{r:8,c:6,s:54}];
+const GAME_MAX = 5000;
+function gameShots(r, c){ return Math.round(5.5 * r + 7 + Math.max(0, c - 4) * 1.5); }
+function gameNext(prev, k){
+  let r = prev.r, c = prev.c, s;
+  if (r >= 9 && c >= 6){ s = Math.max(Math.round(gameShots(9, 6) * 0.7), prev.s - 1); }
+  else { if (k % 2 === 0 && r < 9) r++; else if (c < 6) c++; else r = Math.min(9, r + 1); s = gameShots(r, c); }
+  return { r, c, s };
+}
+function gameLvRow(l, i){
+  return `<div class="gl-row" style="display:flex;gap:6px;align-items:center;margin-top:6px">
+    <b class="gl-n" style="width:30px;text-align:center">${i + 1}</b>
+    <input class="gl-r" type="number" min="1" max="9" value="${l.r}" style="width:64px">
+    <input class="gl-c" type="number" min="2" max="6" value="${l.c}" style="width:64px">
+    <input class="gl-s" type="number" min="3" max="300" value="${l.s}" style="width:72px">
+    <button class="btn red" type="button" onclick="gameLvDel(this)">🗑</button>
+  </div>`;
+}
+function gameLvCount(){
+  const n = document.querySelectorAll('#gl_list .gl-row').length;
+  document.querySelectorAll('#gl_list .gl-row').forEach((row, i) => { row.querySelector('.gl-n').textContent = i + 1; });
+  const e = $('gl_cnt'); if (e) e.textContent = n;
+}
+function gameLvRead(){
+  const out = [];
+  document.querySelectorAll('#gl_list .gl-row').forEach(row => {
+    out.push({ r: Math.floor(+row.querySelector('.gl-r').value), c: Math.floor(+row.querySelector('.gl-c').value), s: Math.floor(+row.querySelector('.gl-s').value) });
+  });
+  return out;
+}
+function gameLvAdd(n){
+  n = Math.floor(+n);
+  if (!(n >= 1)) return toast('কয়টা লেভেল যোগ হবে সেটা লিখুন', 'err');
+  const cur = gameLvRead();
+  if (cur.length + n > GAME_MAX) return toast('সর্বোচ্চ ' + GAME_MAX + 'টি লেভেল', 'err');
+  let prev = cur.length ? cur[cur.length - 1] : { r: 2, c: 3, s: 20 }, html = '';
+  for (let k = 0; k < n; k++){
+    prev = gameNext(prev, cur.length + k);
+    html += gameLvRow(prev, cur.length + k);
+  }
+  const box = $('gl_list');
+  box.insertAdjacentHTML('beforeend', html);
+  gameLvCount();
+  box.scrollTop = box.scrollHeight;
+  toast(n + 'টি লেভেল যোগ হয়েছে। Save চাপুন');
+}
+function gameLvDel(btn){
+  if (document.querySelectorAll('#gl_list .gl-row').length <= 1) return toast('কমপক্ষে ১টা লেভেল রাখুন', 'err');
+  btn.closest('.gl-row').remove(); gameLvCount();
+}
+function gameLvReset(){
+  if (!confirm('সব লেভেল মুছে ডিফল্ট ১০টা লেভেল বসাবে। ঠিক আছে?')) return;
+  $('gl_list').innerHTML = GAME_DEF.map(gameLvRow).join(''); gameLvCount();
+}
+async function viewGame(){
+  let s = {};
+  try{ const d = await db.collection('settings').doc('app').get(); s = d.exists ? d.data() : {}; }catch(e){ console.warn('game settings:', e.message); }
+  let gw = [];
+  try{ gw = await safeList('gameWins'); }catch(e){}
+  const dd = new Date(Date.now() + 216e5), today = String(dd.getUTCFullYear() * 10000 + (dd.getUTCMonth() + 1) * 100 + dd.getUTCDate());
+  const paid = gw.reduce((a, x) => a + (+x.reward || 0), 0), tw = gw.filter(x => x.day === today);
+  const players = new Set(tw.map(x => x.uid)).size;
+  const lv = (Array.isArray(s.gameLevels) && s.gameLevels.length) ? s.gameLevels.slice(0, GAME_MAX) : GAME_DEF;
+  return `
+    ${viewHead('🎮', 'Game', 'Bubble Shooter: লেভেল, reward ও ad')}
+    <div class="card">
+      <h3><span class="ic">📊</span> Game Stats</h3>
+      <div class="form-grid">
+        <div class="field"><label>মোট জেতা লেভেল</label><input readonly value="${gw.length}"></div>
+        <div class="field"><label>মোট দেওয়া টাকা (BDT)</label><input readonly value="${paid.toFixed(2)}"></div>
+        <div class="field"><label>আজ জেতা লেভেল</label><input readonly value="${tw.length}"></div>
+        <div class="field"><label>আজ কতজন খেলেছে</label><input readonly value="${players}"></div>
+      </div>
+    </div>
+    ${gameCard(s)}
+    <div class="card">
+      <h3><span class="ic">🧩</span> Levels (<span id="gl_cnt">${lv.length}</span>টি)</h3>
+      <div class="notice"><span class="em">ℹ️</span><div>
+        যত খুশি লেভেল বাড়ান (সর্বোচ্চ ${GAME_MAX}টি)। <b>ROWS</b> = শুরুতে বাবলের সারি (১-৯), <b>COLORS</b> = রঙের সংখ্যা (২-৬), <b>SHOTS</b> = কয়টা শট পাবে (৩-৩০০)।<br>
+        সারি ও রঙ বাড়ালে লেভেল কঠিন হয়, শট কমালেও কঠিন হয়। শেষ লেভেল শেষ হলে ইউজার শেষ লেভেলটাই বারবার খেলবে।
+      </div></div>
+      <div style="display:flex;gap:6px;align-items:center;font-size:11px;font-weight:700;opacity:.7;margin-top:8px">
+        <span style="width:30px;text-align:center">#</span><span style="width:64px">ROWS</span><span style="width:64px">COLORS</span><span style="width:72px">SHOTS</span>
+      </div>
+      <div id="gl_list" style="max-height:380px;overflow:auto">${lv.map(gameLvRow).join('')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <button class="btn ghost" type="button" onclick="gameLvAdd(1)">＋ ১টা লেভেল</button>
+        <button class="btn ghost" type="button" onclick="gameLvAdd(10)">＋ ১০টা লেভেল</button>
+        <input id="gl_n" type="number" min="1" max="1000" value="100" style="width:84px">
+        <button class="btn ghost" type="button" onclick="gameLvAdd($('gl_n').value)">＋ এতগুলো লেভেল যোগ করুন</button>
+        <button class="btn ghost" type="button" onclick="gameLvAdd(50)">＋ ৫০টা লেভেল</button>
+        <button class="btn ghost" type="button" onclick="gameLvReset()">↺ ডিফল্ট</button>
+      </div>
+    </div>
+    <button class="btn blue" style="margin:4px 0 24px" onclick="gameSave()">💾 Save Game (Settings + Levels)</button>
+  `;
+}
+async function gameSave(){
+  const rew = Math.round(parseFloat($('gm_rew').value) * 100) / 100, day = Math.floor(parseFloat($('gm_day').value));
+  if (!isFinite(rew) || rew < 0 || rew > 1000) return toast('Reward ঠিক নয়', 'err');
+  if (!isFinite(day) || day < 1 || day > 50) return toast('Daily limit ১ থেকে ৫০ এর মধ্যে দিন', 'err');
+  const levels = gameLvRead();
+  if (!levels.length || levels.length > GAME_MAX) return toast('লেভেল ১ থেকে ' + GAME_MAX + 'টির মধ্যে হতে হবে', 'err');
+  for (let i = 0; i < levels.length; i++){
+    const l = levels[i];
+    if (!(l.r >= 1 && l.r <= 9)) return toast('লেভেল ' + (i + 1) + ': ROWS ১ থেকে ৯', 'err');
+    if (!(l.c >= 2 && l.c <= 6)) return toast('লেভেল ' + (i + 1) + ': COLORS ২ থেকে ৬', 'err');
+    if (!(l.s >= 3 && l.s <= 300)) return toast('লেভেল ' + (i + 1) + ': SHOTS ৩ থেকে ৩০০', 'err');
+  }
+  try{
+    await db.collection('settings').doc('app').set({ gameOn: $('gm_on').checked, gameReward: rew, gameDaily: day, gameAdBefore: $('gm_ab').checked, gameAdAfter: $('gm_aa').checked, gameLevels: levels }, { merge: true });
+    toast('Game সেভ হয়েছে ✅ (' + levels.length + 'টি লেভেল)');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+/* =============== AI PROVIDERS (Admin) =============== */
+const AI_PRESETS = {
+  anthropic:  { label:'Claude (Anthropic)', type:'anthropic', model:'claude-sonnet-5-5', baseUrl:'' },
+  gemini:     { label:'Google Gemini',      type:'gemini',    model:'gemini-2.5-flash',  baseUrl:'' },
+  openai:     { label:'OpenAI',             type:'openai',    model:'gpt-4o-mini',       baseUrl:'https://api.openai.com/v1' },
+  openrouter: { label:'OpenRouter',         type:'openai',    model:'openrouter/free',   baseUrl:'https://openrouter.ai/api/v1' },
+  groq:       { label:'Groq',               type:'openai',    model:'llama-3.3-70b-versatile', baseUrl:'https://api.groq.com/openai/v1' },
+  deepseek:   { label:'DeepSeek',           type:'openai',    model:'deepseek-chat',     baseUrl:'https://api.deepseek.com/v1' },
+  mistral:    { label:'Mistral',            type:'openai',    model:'mistral-small-latest', baseUrl:'https://api.mistral.ai/v1' },
+  xai:        { label:'xAI Grok',           type:'openai',    model:'grok-3-mini',       baseUrl:'https://api.x.ai/v1' },
+  together:   { label:'Together AI',        type:'openai',    model:'meta-llama/Llama-3.3-70B-Instruct-Turbo', baseUrl:'https://api.together.xyz/v1' },
+  perplexity: { label:'Perplexity',         type:'openai',    model:'sonar',             baseUrl:'https://api.perplexity.ai' },
+  custom:     { label:'Custom (OpenAI-compatible)', type:'openai', model:'', baseUrl:'' }
+};
+const AI_KP = { anthropic:['sk-ant-'], gemini:['AQ.','AIza'], openai:['sk-'], openrouter:['sk-or-'], groq:['gsk_'], xai:['xai-'] };
+function aiKeyHint(p){
+  const k = AI_KP[p.preset];
+  return (k && p.key && !k.some(x => p.key.indexOf(x) === 0)) ? p.name + ': এই key ভুল জায়গায় বসেছে। এখানে key সাধারণত "' + k.join('" বা "') + '…" দিয়ে শুরু হয়' : '';
+}
+function aiRowHtml(p){
+  p = p || {};
+  const pre = p.preset && AI_PRESETS[p.preset] ? p.preset : (p.type === 'anthropic' ? 'anthropic' : p.type === 'gemini' ? 'gemini' : 'custom');
+  const opts = Object.keys(AI_PRESETS).map(k => `<option value="${k}" ${k === pre ? 'selected' : ''}>${esc(AI_PRESETS[k].label)}</option>`).join('');
+  const isOA = (AI_PRESETS[pre] || {}).type === 'openai';
+  const dl = 'dl' + Math.random().toString(36).slice(2, 8);
+  return `<div class="ai-row" data-preset="${pre}" style="border:1px solid rgba(128,128,128,.3);border-radius:14px;padding:12px;margin-top:10px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <label style="display:flex;gap:6px;align-items:center;font-weight:700;font-size:12px"><input type="checkbox" class="ai-on" ${p.on === false ? '' : 'checked'}> ON</label>
+      <select class="ai-pre" onchange="aiPick(this)" style="flex:1;min-width:150px">${opts}</select>
+      <button class="btn ghost" type="button" onclick="aiMove(this,-1)">▲</button>
+      <button class="btn ghost" type="button" onclick="aiMove(this,1)">▼</button>
+      <button class="btn red" type="button" onclick="aiDel(this)">🗑</button>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>NAME</label><input class="ai-n" maxlength="24" value="${esc(p.name || AI_PRESETS[pre].label.slice(0,24))}"></div>
+      <div class="field"><label>MODEL</label><input class="ai-m" list="${dl}" value="${esc(p.model || AI_PRESETS[pre].model)}" placeholder="model name"><datalist id="${dl}"></datalist></div>
+      <div class="field full ai-bw" style="${isOA ? '' : 'display:none'}"><label>BASE URL (https://…/v1)</label><input class="ai-b" value="${esc(p.baseUrl || AI_PRESETS[pre].baseUrl)}" placeholder="https://api.example.com/v1"></div>
+      <div class="field full"><label>API KEY</label><div style="display:flex;gap:8px"><input class="ai-k" type="password" autocomplete="off" value="${esc(p.key || '')}" placeholder="sk-… / AIza… / gsk_…" style="flex:1"><button class="btn ghost" type="button" onclick="const i=this.previousElementSibling;i.type=i.type==='password'?'text':'password'">👁</button><button class="btn ghost" type="button" title="এই key-তে কোন মডেল আছে" onclick="aiModels(this)">📋</button><button class="btn" type="button" onclick="aiTest(this)">Test</button></div></div>
+    </div>
+  </div>`;
+}
+function aiCard(ai, s){
+  const list = Array.isArray(ai.providers) ? ai.providers : [];
+  return `<div class="card">
+    <h3><span class="ic">🤖</span> AI Providers (চ্যাট AI-এর API)</h3>
+    <div class="notice"><span class="em">ℹ️</span><div>
+      যতগুলো খুশি AI যোগ করুন। অ্যাপ <b>উপর থেকে নিচে</b> ক্রমে চেষ্টা করবে, একটা ফেইল করলে পরেরটা। সবগুলো ফেইল করলে অ্যাপের নিজস্ব auto support উত্তর দেবে।<br>
+      ⚠️ <b>নিরাপত্তা:</b> অ্যাপ সরাসরি AI-কে কল করে, তাই এই key-গুলো লগইন করা ইউজারদের ব্রাউজারে পৌঁছায়। শুধু <b>খরচের সীমা (spend limit) দেওয়া</b> key ব্যবহার করুন, অথবা নিচের Server URL দিয়ে নিজের সার্ভার/Worker ব্যবহার করুন।
+    </div></div>
+    <div id="aiList">${list.map(aiRowHtml).join('')}</div>
+    <div class="row-act" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" type="button" onclick="aiAddRow()">＋ AI যোগ করুন</button>
+    </div>
+    <div class="form-grid" style="margin-top:12px">
+      <div class="field full"><label>SERVER URL (ঐচ্ছিক, সবার আগে চেষ্টা হবে — POST {messages, context} → {text})</label><input id="ai_url" value="${esc(s.aiUrl || '')}" placeholder="https://your-worker.workers.dev"></div>
+    </div>
+    <button class="btn blue" style="margin-top:14px" onclick="aiSaveAll()">💾 Save AI Settings</button>
+  </div>`;
+}
+function aiAddRow(){
+  $('aiList').insertAdjacentHTML('beforeend', aiRowHtml({ preset:'openai', name:'OpenAI', model:'gpt-4o-mini', baseUrl:'https://api.openai.com/v1' }));
+}
+function aiPick(sel){
+  const row = sel.closest('.ai-row'), pr = AI_PRESETS[sel.value]; if (!pr) return;
+  row.dataset.preset = sel.value;
+  row.querySelector('.ai-n').value = pr.label.slice(0,24);
+  row.querySelector('.ai-m').value = pr.model;
+  row.querySelector('.ai-b').value = pr.baseUrl;
+  row.querySelector('.ai-bw').style.display = pr.type === 'openai' ? '' : 'none';
+}
+function aiMove(btn, dir){
+  const row = btn.closest('.ai-row'), sib = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (!sib) return;
+  dir < 0 ? sib.before(row) : sib.after(row);
+}
+function aiDel(btn){ btn.closest('.ai-row').remove(); }
+function aiReadRow(row){
+  const pr = AI_PRESETS[row.dataset.preset] || AI_PRESETS.custom;
+  return {
+    type: pr.type, preset: row.dataset.preset,
+    name: row.querySelector('.ai-n').value.trim().slice(0,24) || pr.label.slice(0,24),
+    model: row.querySelector('.ai-m').value.trim().slice(0,120),
+    baseUrl: pr.type === 'openai' ? row.querySelector('.ai-b').value.trim().replace(/\/+$/,'') : '',
+    key: row.querySelector('.ai-k').value.trim(),
+    on: row.querySelector('.ai-on').checked
+  };
+}
+function aiRace(p, ms){
+  let t; return Promise.race([p, new Promise((_, rej) => { t = setTimeout(() => rej(new Error('timeout')), ms); })]).finally(() => clearTimeout(t));
+}
+async function aiModels(btn){
+  const row = btn.closest('.ai-row'), p = aiReadRow(row);
+  if (!p.key) return toast('আগে API key দিন', 'err');
+  { const h = aiKeyHint(p); if (h) return toast(h, 'err'); }
+  const old = btn.textContent; btn.textContent = '…'; btn.disabled = true;
+  try{
+    let r, j, ids = [];
+    if (p.type === 'anthropic'){
+      r = await aiRace(fetch('https://api.anthropic.com/v1/models?limit=100', { headers:{ 'x-api-key':p.key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' } }), 15000);
+      j = await r.json(); if (!r.ok) throw new Error(r.status + ': ' + ((j.error && j.error.message) || 'error'));
+      ids = (j.data || []).map(x => x.id);
+    } else if (p.type === 'gemini'){
+      r = await aiRace(fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=100', { headers:{ 'x-goog-api-key':p.key } }), 15000);
+      j = await r.json(); if (!r.ok) throw new Error(r.status + ': ' + ((j.error && j.error.message) || 'error'));
+      ids = (j.models || []).filter(x => (x.supportedGenerationMethods || []).indexOf('generateContent') >= 0).map(x => String(x.name).replace(/^models\//, ''));
+    } else {
+      if (!/^https:\/\/[^\s"'<>]{3,200}$/.test(p.baseUrl)) throw new Error('Base URL ঠিক নয়');
+      r = await aiRace(fetch(p.baseUrl.replace(/\/chat\/completions$/, '') + '/models', { headers:{ 'Authorization':'Bearer ' + p.key } }), 15000);
+      j = await r.json(); if (!r.ok) throw new Error(r.status + ': ' + ((j.error && (j.error.message || j.error)) || 'error'));
+      ids = (j.data || []).map(x => x.id);
+    }
+    ids = ids.filter(Boolean).sort();
+    if (!ids.length) throw new Error('কোনো মডেল পাওয়া যায়নি');
+    row.querySelector('datalist').innerHTML = ids.map(i => `<option value="${esc(i)}">`).join('');
+    const cur = row.querySelector('.ai-m').value.trim();
+    toast(ids.indexOf(cur) < 0
+      ? '⚠️ "' + cur + '" এই key-তে নেই। ' + ids.length + 'টি মডেল আছে, Model ঘর মুছে ট্যাপ করে বেছে নিন'
+      : '✅ ' + ids.length + 'টি মডেল পাওয়া গেছে, "' + cur + '" ঠিক আছে', ids.indexOf(cur) < 0 ? 'err' : undefined);
+  }catch(e){ toast('❌ ' + p.name + ': ' + String(e.message || e).slice(0,120), 'err'); }
+  btn.textContent = old; btn.disabled = false;
+}
+async function aiTest(btn){
+  const p = aiReadRow(btn.closest('.ai-row'));
+  if (!p.key) return toast('API key দিন', 'err');
+  { const h = aiKeyHint(p); if (h) return toast(h, 'err'); }
+  if (!p.model) return toast('Model লিখুন', 'err');
+  if (p.type === 'openai' && !/^https:\/\/[^\s"'<>]{3,200}$/.test(p.baseUrl)) return toast('Base URL ঠিক নয় (https:// দিয়ে শুরু)', 'err');
+  const old = btn.textContent; btn.textContent = '…'; btn.disabled = true;
+  try{
+    let r, j, txt = '';
+    if (p.type === 'anthropic'){
+      r = await aiRace(fetch('https://api.anthropic.com/v1/messages', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-api-key':p.key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' }, body: JSON.stringify({ model:p.model, max_tokens:20, messages:[{ role:'user', content:'Reply with the single word OK' }] }) }), 20000);
+      j = await r.json(); if (!r.ok) throw new Error(r.status + ': ' + ((j.error && j.error.message) || 'error'));
+      txt = ((j.content || [])[0] || {}).text || '';
+    } else if (p.type === 'gemini'){
+      r = await aiRace(fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(p.model) + ':generateContent', { method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key':p.key }, body: JSON.stringify({ contents:[{ role:'user', parts:[{ text:'Reply with the single word OK' }] }] }) }), 20000);
+      j = await r.json(); if (!r.ok) throw new Error(r.status + ': ' + ((j.error && j.error.message) || 'error'));
+      txt = (((j.candidates || [])[0] || {}).content || {}).parts ? j.candidates[0].content.parts.map(x => x.text || '').join('') : '';
+    } else {
+      const body = { model:p.model, messages:[{ role:'user', content:'Reply with the single word OK' }] };
+      if (/api\.openai\.com/.test(p.baseUrl)) body.max_completion_tokens = 50; else body.max_tokens = 20;
+      r = await aiRace(fetch(p.baseUrl.replace(/\/chat\/completions$/,'') + '/chat/completions', { method:'POST', headers:{ 'Authorization':'Bearer ' + p.key, 'Content-Type':'application/json' }, body: JSON.stringify(body) }), 20000);
+      j = await r.json(); if (!r.ok) throw new Error(r.status + ': ' + ((j.error && (j.error.message || j.error)) || 'error'));
+      txt = (((j.choices || [])[0] || {}).message || {}).content || '';
+    }
+    toast('✅ ' + p.name + ' কাজ করছে' + (txt ? ': ' + String(txt).slice(0,30) : ''));
+  }catch(e){ toast('❌ ' + p.name + ': ' + String(e.message || e).slice(0,120), 'err'); }
+  btn.textContent = old; btn.disabled = false;
+}
+async function aiSaveAll(){
+  const providers = [...document.querySelectorAll('#aiList .ai-row')].map(aiReadRow);
+  for (const p of providers){
+    if (!p.key) return toast(p.name + ': API key দিন', 'err');
+    { const h = aiKeyHint(p); if (h) return toast(h, 'err'); }
+    if (!p.model) return toast(p.name + ': Model লিখুন', 'err');
+    if (p.type === 'openai' && !/^https:\/\/[^\s"'<>]{3,200}$/.test(p.baseUrl)) return toast(p.name + ': Base URL ঠিক নয়', 'err');
+  }
+  const url = $('ai_url').value.trim();
+  if (url && !/^https?:\/\/[^\s"'<>]{3,300}$/.test(url)) return toast('Server URL ঠিক নয়', 'err');
+  try{
+    await db.collection('settings').doc('ai').set({ providers: providers.slice(0,12), updated: Date.now() });
+    await db.collection('settings').doc('app').set({ aiUrl: url }, { merge: true });
+    toast('AI Settings সেভ হয়েছে ✅');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+
+async function saveSt(){
+  const PL = [...document.querySelectorAll('#pmList .pm-row')].map(r => ({
+    name: r.querySelector('.pm-n').value.trim().slice(0,24),
+    logo: (r.dataset.d || r.querySelector('.pm-l').value.trim())
+  })).filter(x => x.name).slice(0,8);
+  if (!PL.length) return toast('কমপক্ষে একটি Payment Method দিন', 'err');
+  if (PL.some(x => x.logo && !/^(https?:\/\/[^\s"'<>]{3,300}|data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+\/=]{20,70000})$/.test(x.logo))) return toast('লোগোর লিংক ঠিক নয়', 'err');
+  
+  const gsFb = $('st_gs_fb').value.trim();
+  const gsIg = $('st_gs_ig').value.trim();
+  const gsGm = $('st_gs_gm').value.trim();
+  const validGs = u => !u || /^https:\/\/script\.google\.com\//.test(u);
+  if (!validGs(gsFb) || !validGs(gsIg) || !validGs(gsGm)) return toast('Google Sheet URL ফরম্যাট ঠিক নয়', 'err');
+
+  const data = {
+    adWait: +$('st_ad').value,
+    adTarget: +$('st_at').value,
+    adHourly: +$('st_ah').value,
+    dailyBonus: +$('st_bn').value,
+    dailyBonusAd: $('st_bad').value === 'true',
+    ref: +$('st_rf').value,
+    minWithdraw: +$('st_mw').value,
+    hours: $('st_hr').value.trim(),
+    withdrawOn: $('st_wo').value === 'true',
+    refReward: Math.max(0, +$('st_rr').value || 0),
+    appUrl: $('st_au').value.trim(),
+    payList: PL, payMethods: PL.map(x => x.name).join(', '),
+
+    channelName: $('st_cn').value.trim(),
+    channelUrl: $('st_cu').value.trim(),
+    groupName: $('st_gn').value.trim(),
+    groupUrl: $('st_gu').value.trim(),
+    groupDesc: $('st_gd').value.trim(),
+    news: $('st_nw').value.trim(),
+    kb: $('st_kb').value.trim(),
+
+    gsFb, gsIg, gsGm
+  };
+  try{
+    await db.collection('settings').doc('app').set(data, { merge: true });
+    toast('Settings সেভ হয়েছে ✅');
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+/* ═══════════════ BROADCAST ═══════════════ */
+function viewNotify(){
+  return `
+    ${viewHead('🔔','Broadcast','সবাইকে মেসেজ পাঠান')}
+    <div class="notice">
+      <span class="em">📢</span>
+      <div>এই মেসেজটি হোম স্ক্রিনের উপরে <b>Announcement</b> হিসেবে দেখা যাবে।</div>
+    </div>
+    <div class="card">
+      <h3 class="blue"><span class="ic">🔔</span> Broadcast Message</h3>
+      <div class="form-grid">
+        <div class="field full"><label>TITLE</label><input id="nt_t" placeholder="যেমন: নতুন অ্যাড এসেছে!"></div>
+        <div class="field full"><label>BODY</label><textarea id="nt_b" placeholder="সংক্ষিপ্ত বার্তা…"></textarea></div>
+      </div>
+      <button class="btn blue" style="margin-top:16px" onclick="doBroadcast()">📢 Send to All</button>
+    </div>
+    <div class="card">
+      <h3 class="blue"><span class="ic">🤖</span> Telegram Bot Message</h3>
+      <p style="opacity:.75;margin:0 0 12px;font-size:13px">বটের ইনবক্সে সরাসরি মেসেজ যাবে। ${Object.keys(cache.tg).length} জন ইউজারের Telegram যুক্ত আছে; সবাইকে পাঠালে যারা বটে /start করেছে তারাও পাবে।</p>
+      <div class="form-grid">
+        <div class="field"><label>কাকে পাঠাবেন</label>
+          <select id="bt_t" onchange="$('bt_uw').style.display = this.value === 'one' ? '' : 'none'"><option value="all">👥 সব ইউজার</option><option value="one">👤 একজন ইউজার</option></select></div>
+        <div class="field" id="bt_uw" style="display:none"><label>ইউজার (Telegram যুক্ত)</label>
+          <select id="bt_u">${cache.users.filter(u => cache.tg[u.id]).map(u => `<option value="${esc(u.id)}">${esc(u.name || u.id.slice(0,8))} — ${esc(cache.tg[u.id].tgName ? '@'+cache.tg[u.id].tgName : cache.tg[u.id].tgId)}</option>`).join('') || '<option value="">কেউ নেই</option>'}</select></div>
+        <div class="field full"><label>MESSAGE</label><textarea id="bt_m" maxlength="3500" placeholder="মেসেজ লিখুন…"></textarea></div>
+      </div>
+      <button class="btn blue" style="margin-top:16px" id="bt_b" onclick="doBotMsg()">🤖 Bot এ পাঠান</button>
+    </div>
+  `;
+}
+async function doBroadcast(){
+  const title = $('nt_t').value.trim();
+  const body  = $('nt_b').value.trim();
+  if (!title || !body) return toast('Title ও Body দরকার', 'err');
+  try{
+    await addDoc('announcements', { title, body, broadcast: true });
+    toast('প্রকাশিত ✅');
+    await refreshAll(); showHome();
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+
+async function doBotMsg(){
+  const text = $('bt_m').value.trim(), one = $('bt_t').value === 'one', uid = one ? $('bt_u').value : '';
+  if (!TGE.tok) return toast('আগে Settings এ Bot Token দিন', 'err');
+  if (!text) return toast('মেসেজ লিখুন', 'err');
+  if (one && !uid) return toast('ইউজার বাছুন', 'err');
+  if (!await confirmDialog('Bot মেসেজ পাঠাবেন?', one ? 'এই ইউজারকে মেসেজ যাবে।' : 'বটের সব ইউজারের ইনবক্সে মেসেজ যাবে। শেষ না হওয়া পর্যন্ত পেজ খোলা রাখুন।', 'Send')) return;
+  const b = $('bt_b'); b.disabled = true;
+  const ids = new Set();
+  try{
+    if (one){ const l = cache.tg[uid]; if (!l) throw new Error('এই ইউজারের Telegram যুক্ত নেই'); ids.add(String(l.tgId)); }
+    else {
+      (await db.collection('botUsers').get()).forEach(d => { if (d.data().active !== false) ids.add(d.id); });
+      Object.values(cache.tg).forEach(l => ids.add(String(l.tgId)));
+    }
+    let sent = 0, failed = 0, n = 0;
+    for (const id of ids){
+      b.textContent = `পাঠানো হচ্ছে… ${++n}/${ids.size}`;
+      try{ await tgApi('sendMessage', { chat_id: id, text: '📢 ' + text, disable_web_page_preview: true }); sent++; }
+      catch(e){
+        if (e.code === 429){ await sleep(((e.retry || 2) + 1) * 1000); try{ await tgApi('sendMessage', { chat_id: id, text: '📢 ' + text }); sent++; }catch(_){ failed++; } }
+        else { failed++; if (e.code === 403) db.collection('botUsers').doc(id).set({ active:false }, { merge:true }).catch(()=>{}); }
+      }
+      await sleep(50);
+    }
+    await addDoc('broadcasts', { text, target: one ? 'one' : 'all', sent, failed, by: auth.currentUser?.email || '' });
+    toast(`✅ পাঠানো: ${sent}, ব্যর্থ: ${failed}`);
+    $('bt_m').value = '';
+  }catch(e){ toast('ব্যর্থ: ' + (e.message || e.code), 'err'); }
+  b.disabled = false; b.textContent = '🤖 Bot এ পাঠান';
+}
+
+/* ═══════════════ SECURITY ═══════════════ */
+function viewSecurity(){
+  const u = auth.currentUser;
+  return `
+    ${viewHead('🔐','Security','ইমেইল ও পাসওয়ার্ড পরিবর্তন')}
+    <div class="card">
+      <h3><span class="ic">ℹ️</span> Account Info</h3>
+      <div class="form-grid">
+        <div class="field"><label>CURRENT EMAIL</label><input value="${esc(u?.email || '')}" readonly></div>
+        <div class="field"><label>LAST LOGIN</label><input value="${u?.metadata?.lastSignInTime ? new Date(u.metadata.lastSignInTime).toLocaleString() : '—'}" readonly></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 class="blue"><span class="ic">📧</span> Change Email</h3>
+      <div class="form-grid">
+        <div class="field full"><label>NEW EMAIL</label><input id="newEmail" type="email" placeholder="newemail@gmail.com"></div>
+      </div>
+      <button class="btn blue" style="margin-top:14px" onclick="changeEmail()">📧 Update Email</button>
+      <p class="muted" style="margin-top:14px">⚠️ ইমেইল পরিবর্তনের পর Firebase Console → Authentication → Users এ পুরোনো মুছে নতুন যোগ করুন, এবং কোডে ADMIN_EMAILS আপডেট করুন।</p>
+    </div>
+    <div class="card">
+      <h3 class="purple"><span class="ic">🔑</span> Change Password</h3>
+      <div class="form-grid">
+        <div class="field full"><label>CURRENT PASSWORD</label><input id="oldPass" type="password" placeholder="বর্তমান পাসওয়ার্ড"></div>
+        <div class="field"><label>NEW PASSWORD</label><input id="newPass" type="password" placeholder="নতুন পাসওয়ার্ড"></div>
+        <div class="field"><label>CONFIRM NEW</label><input id="newPass2" type="password" placeholder="আবার লিখুন"></div>
+      </div>
+      <button class="btn purple" style="margin-top:14px" onclick="changePass()">🔑 Update Password</button>
+    </div>
+    <div class="card">
+      <h3 class="amber"><span class="ic">📤</span> Password Reset</h3>
+      <p class="muted">ক্লিক করলে <b>${esc(u?.email || '')}</b> এ একটি রিসেট লিংক যাবে।</p>
+      <button class="btn amber" style="margin-top:14px" onclick="sendReset()">📧 Send Reset Link</button>
+    </div>
+    <div class="card">
+      <h3 class="red"><span class="ic">🚪</span> Sign Out All</h3>
+      <p class="muted">সব জায়গা থেকে সাইনআউট করে দিন।</p>
+      <button class="btn red" style="margin-top:14px" onclick="signOutAll()">🚪 Sign Out All</button>
+    </div>
+  `;
+}
+async function changeEmail(){
+  const u = auth.currentUser;
+  if (!u) return toast('লগইন নেই', 'err');
+  const ne = $('newEmail').value.trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(ne)) return toast('সঠিক ইমেইল দিন', 'err');
+  const pass = prompt('নিরাপত্তার জন্য বর্তমান পাসওয়ার্ড দিন:');
+  if (!pass) return;
+  try{
+    const cred = firebase.auth.EmailAuthProvider.credential(u.email, pass);
+    await u.reauthenticateWithCredential(cred);
+    await u.updateEmail(ne);
+    toast('✅ ইমেইল আপডেট হয়েছে → ' + ne);
+  } catch(e){ toast('ব্যর্থ: ' + (e.code || e.message), 'err'); }
+}
+async function changePass(){
+  const u = auth.currentUser;
+  if (!u) return toast('লগইন নেই', 'err');
+  const op = $('oldPass').value, np = $('newPass').value, np2 = $('newPass2').value;
+  if (!op || !np || !np2) return toast('সব ঘর পূরণ করুন', 'err');
+  if (np.length < 6) return toast('নতুন পাসওয়ার্ড ৬+ অক্ষর দিন', 'err');
+  if (np !== np2) return toast('দুটি পাসওয়ার্ড মিলছে না', 'err');
+  try{
+    const cred = firebase.auth.EmailAuthProvider.credential(u.email, op);
+    await u.reauthenticateWithCredential(cred);
+    await u.updatePassword(np);
+    toast('✅ পাসওয়ার্ড পরিবর্তন হয়েছে');
+    $('oldPass').value = ''; $('newPass').value = ''; $('newPass2').value = '';
+  } catch(e){
+    let msg = e.code || e.message;
+    if (e.code === 'auth/wrong-password') msg = 'বর্তমান পাসওয়ার্ড ভুল';
+    if (e.code === 'auth/weak-password') msg = 'পাসওয়ার্ড দুর্বল (৬+ অক্ষর)';
+    toast('ব্যর্থ: ' + msg, 'err');
+  }
+}
+async function sendReset(){
+  const u = auth.currentUser;
+  if (!u) return;
+  try{
+    await auth.sendPasswordResetEmail(u.email);
+    toast('✅ রিসেট লিংক পাঠানো হয়েছে → ' + u.email);
+  } catch(e){ toast('ব্যর্থ: ' + (e.code || e.message), 'err'); }
+}
+async function signOutAll(){
+  const ok = await confirmDialog('Sign Out All?', 'সব ডিভাইস থেকে লগআউট করবেন?', '🚪 Sign Out');
+  if (!ok) return;
+  try{ await auth.signOut(); toast('✅ সাইনআউট হয়েছে'); }
+  catch(e){ toast('ব্যর্থ: ' + (e.code || e.message), 'err'); }
+}
+
+/* ═══════════════ FACEBOOK ID SELL (admin) ═══════════════ */
+async function viewFbSell(){
+  let st = {};
+  try{ st = (await db.collection('settings').doc('app').get()).data() || {}; }catch(e){}
+  const all  = cache.fbSales || [];
+  const pend = all.filter(x => x.status === 'pending');
+  const done = all.filter(x => x.status !== 'pending');
+  const okN  = all.filter(x => x.status === 'approved').length;
+  const on   = st.fbSellOn !== false;
+  return `
+    ${viewHead('📘','Facebook ID Sell','রেট, পাসওয়ার্ড ও সাবমিট করা আইডি',
+      `<span class="pill-stat warn">${pend.length} Pending</span>
+       <span class="pill-stat info">${okN} Approved</span>`
+    )}
+    <div class="card">
+      <h3 class="blue"><span class="ic">⚙️</span> সেটিংস</h3>
+      <div class="form-grid">
+        <div class="field"><label>প্রতি আইডির রেট (BDT)</label><input id="fs_rate" type="number" step="0.01" min="0" value="${esc(st.fbSellRate ?? '')}" placeholder="যেমন 5.00"></div>
+        <div class="field"><label>আজকের পাসওয়ার্ড</label><input id="fs_pass" maxlength="40" value="${esc(st.fbSellPass ?? '')}" placeholder="TECHBD2024"></div>
+        <div class="field"><label>আইডি জমা নেওয়া</label>
+          <select id="fs_on"><option value="1" ${on ? 'selected' : ''}>চালু (ON)</option><option value="0" ${on ? '' : 'selected'}>বন্ধ (OFF)</option></select>
+        </div>
+      </div>
+      <button class="btn" style="margin-top:16px" onclick="saveFbSell()">💾 Save</button>
+    </div>
+    <div class="card">
+      <h3 class="amber"><span class="ic">⏳</span> Pending (${pend.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>FB UID</th><th>2FA Key</th><th>Rate</th><th>Time</th><th>Actions</th></tr></thead>
+          <tbody>${pend.map(x => `
+            <tr>
+              <td><b>${esc(x.name || x.uid)}</b></td>
+              <td><span class="code-snip">${esc(x.fbUid || x.id)}</span> <button class="btn sm" data-t="${esc(x.fbUid || x.id)}" onclick="fbCopy(this.dataset.t)">Copy</button></td>
+              <td><span class="code-snip">${esc(x.key)}</span> <button class="btn sm" data-t="${esc(x.key)}" onclick="fbCopy(this.dataset.t)">Copy</button></td>
+              <td><b style="color:#b45309">৳${(+x.rate || 0).toFixed(2)}</b></td>
+              <td>${x.ts ? new Date(tsMs(x.ts)).toLocaleString() : '—'}</td>
+              <td class="row-act">
+                <button class="btn sm" onclick="fbAct('${esc(x.id)}','approved')">✓ Approve</button>
+                <button class="btn sm red" onclick="fbAct('${esc(x.id)}','rejected')">✗ Reject</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">✅</span>Pending নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">📜</span> History (${done.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>FB UID</th><th>Rate</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody>${done.slice(0,150).map(x => `
+            <tr>
+              <td>${esc(x.name || x.uid)}</td>
+              <td><span class="code-snip">${esc(x.fbUid || x.id)}</span></td>
+              <td>৳${(+x.rate || 0).toFixed(2)}</td>
+              <td>${x.status === 'approved' ? '<span class="badge ok">Approved</span>' : '<span class="badge rej">Rejected</span>'}${x.note ? ` <small style="opacity:.6">(${esc(x.note)})</small>` : ''}</td>
+              <td>${x.ts ? new Date(tsMs(x.ts)).toLocaleString() : '—'}</td>
+            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📜</span>—</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function saveFbSell(){
+  const rate = Math.round(parseFloat($('fs_rate').value) * 100) / 100;
+  const pass = $('fs_pass').value.trim().slice(0, 40);
+  const on   = $('fs_on').value === '1';
+  if (!isFinite(rate) || rate < 0 || rate > 100000) return toast('সঠিক রেট দিন', 'err');
+  try{
+    await setDoc('settings', 'app', { fbSellRate: rate, fbSellPass: pass, fbSellOn: on });
+    toast('✅ সেভ হয়েছে');
+    go('fbsell');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+function fbCopy(t){
+  try{ navigator.clipboard.writeText(t); }
+  catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); }
+  toast('Copied ✅', 'info');
+}
+async function fbAct(id, status){
+  const ok = await confirmDialog(
+    status === 'approved' ? 'Approve ID?' : 'Reject ID?',
+    status === 'approved' ? 'অ্যাপ্রুভ করলে ইউজারের একাউন্টে টাকা যোগ হবে।' : 'রিজেক্ট করলে ইউজারকে রিজেক্ট মেসেজ যাবে।',
+    status === 'approved' ? '✓ Approve' : '✗ Reject'
+  );
+  if (!ok) return;
+  const note = status === 'rejected' ? (prompt('কারণ লিখুন (optional):') || '').slice(0, 120) : '';
+  try{
+    const ref = db.collection('fbSales').doc(id);
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists || snap.data().status !== 'pending') throw new Error('এটি আগেই প্রসেস হয়েছে');
+      const d = snap.data();
+      if (status === 'approved'){
+        const amt = Math.round((+d.rate || 0) * 100) / 100;
+        if (!(amt > 0)) throw new Error('রেট সঠিক নয়');
+        tx.set(db.collection('adjustments').doc('fb_' + id), { uid: d.uid, amount: amt, note: 'Facebook ID Sell: ' + id, by: (auth.currentUser?.email || ''), ts: TS() });
+      }
+      tx.update(ref, { status, note, reviewedAt: TS() });
+    });
+    toast(status === 'approved' ? '✓ Approve হয়েছে, টাকা যোগ হয়েছে' : '✗ Reject হয়েছে');
+    publishLeaderboard(true);
+    await refreshAll(); go('fbsell');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+
+/* ═══════════════ INSTAGRAM ID SELL (admin) ═══════════════ */
+async function viewIgSell(){
+  let st = {};
+  try{ st = (await db.collection('settings').doc('app').get()).data() || {}; }catch(e){}
+  const all  = cache.igSales || [];
+  const pend = all.filter(x => x.status === 'pending');
+  const done = all.filter(x => x.status !== 'pending');
+  const okN  = all.filter(x => x.status === 'approved').length;
+  const on   = st.igSellOn !== false;
+  return `
+    ${viewHead('📸','Instagram ID Sell','রেট, পাসওয়ার্ড ও সাবমিট করা আইডি',
+      `<span class="pill-stat warn">${pend.length} Pending</span>
+       <span class="pill-stat info">${okN} Approved</span>`
+    )}
+    <div class="card">
+      <h3 class="blue"><span class="ic">⚙️</span> সেটিংস</h3>
+      <div class="form-grid">
+        <div class="field"><label>প্রতি আইডির রেট (BDT)</label><input id="ig_rate" type="number" step="0.01" min="0" value="${esc(st.igSellRate ?? '')}" placeholder="যেমন 5.00"></div>
+        <div class="field"><label>আজকের পাসওয়ার্ড</label><input id="ig_pass" maxlength="40" value="${esc(st.igSellPass ?? '')}" placeholder="TECHBD2024"></div>
+        <div class="field"><label>আইডি জমা নেওয়া</label>
+          <select id="ig_on"><option value="1" ${on ? 'selected' : ''}>চালু (ON)</option><option value="0" ${on ? '' : 'selected'}>বন্ধ (OFF)</option></select>
+        </div>
+      </div>
+      <button class="btn" style="margin-top:16px" onclick="saveIgSell()">💾 Save</button>
+    </div>
+    <div class="card">
+      <h3 class="amber"><span class="ic">⏳</span> Pending (${pend.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Username</th><th>2FA Key</th><th>Rate</th><th>Time</th><th>Actions</th></tr></thead>
+          <tbody>${pend.map(x => `
+            <tr>
+              <td><b>${esc(x.name || x.uid)}</b></td>
+              <td><span class="code-snip">@${esc(x.igUser || x.id)}</span> <button class="btn sm" data-t="${esc(x.igUser || x.id)}" onclick="igCopy(this.dataset.t)">Copy</button></td>
+              <td><span class="code-snip">${esc(x.key)}</span> <button class="btn sm" data-t="${esc(x.key)}" onclick="igCopy(this.dataset.t)">Copy</button></td>
+              <td><b style="color:#b45309">৳${(+x.rate || 0).toFixed(2)}</b></td>
+              <td>${x.ts ? new Date(tsMs(x.ts)).toLocaleString() : '—'}</td>
+              <td class="row-act">
+                <button class="btn sm" onclick="igAct('${esc(x.id)}','approved')">✓ Approve</button>
+                <button class="btn sm red" onclick="igAct('${esc(x.id)}','rejected')">✗ Reject</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">✅</span>Pending নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">📜</span> History (${done.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Username</th><th>Rate</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody>${done.slice(0,150).map(x => `
+            <tr>
+              <td>${esc(x.name || x.uid)}</td>
+              <td><span class="code-snip">${esc(x.igUser || x.id)}</span></td>
+              <td>৳${(+x.rate || 0).toFixed(2)}</td>
+              <td>${x.status === 'approved' ? '<span class="badge ok">Approved</span>' : '<span class="badge rej">Rejected</span>'}${x.note ? ` <small style="opacity:.6">(${esc(x.note)})</small>` : ''}</td>
+              <td>${x.ts ? new Date(tsMs(x.ts)).toLocaleString() : '—'}</td>
+            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📜</span>—</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function saveIgSell(){
+  const rate = Math.round(parseFloat($('ig_rate').value) * 100) / 100;
+  const pass = $('ig_pass').value.trim().slice(0, 40);
+  const on   = $('ig_on').value === '1';
+  if (!isFinite(rate) || rate < 0 || rate > 100000) return toast('সঠিক রেট দিন', 'err');
+  try{
+    await setDoc('settings', 'app', { igSellRate: rate, igSellPass: pass, igSellOn: on });
+    toast('✅ সেভ হয়েছে');
+    go('igsell');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+function igCopy(t){
+  try{ navigator.clipboard.writeText(t); }
+  catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); }
+  toast('Copied ✅', 'info');
+}
+async function igAct(id, status){
+  const ok = await confirmDialog(
+    status === 'approved' ? 'Approve ID?' : 'Reject ID?',
+    status === 'approved' ? 'অ্যাপ্রুভ করলে ইউজারের একাউন্টে টাকা যোগ হবে।' : 'রিজেক্ট করলে ইউজারকে রিজেক্ট মেসেজ যাবে।',
+    status === 'approved' ? '✓ Approve' : '✗ Reject'
+  );
+  if (!ok) return;
+  const note = status === 'rejected' ? (prompt('কারণ লিখুন (optional):') || '').slice(0, 120) : '';
+  try{
+    const ref = db.collection('igSales').doc(id);
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists || snap.data().status !== 'pending') throw new Error('এটি আগেই প্রসেস হয়েছে');
+      const d = snap.data();
+      if (status === 'approved'){
+        const amt = Math.round((+d.rate || 0) * 100) / 100;
+        if (!(amt > 0)) throw new Error('রেট সঠিক নয়');
+        tx.set(db.collection('adjustments').doc('ig_' + id), { uid: d.uid, amount: amt, note: 'Instagram ID Sell: ' + id, by: (auth.currentUser?.email || ''), ts: TS() });
+      }
+      tx.update(ref, { status, note, reviewedAt: TS() });
+    });
+    toast(status === 'approved' ? '✓ Approve হয়েছে, টাকা যোগ হয়েছে' : '✗ Reject হয়েছে');
+    publishLeaderboard(true);
+    await refreshAll(); go('igsell');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+
+/* ═══════════════ GMAIL SELL (admin) ═══════════════ */
+async function viewGmSell(){
+  let st = {};
+  try{ st = (await db.collection('settings').doc('app').get()).data() || {}; }catch(e){}
+  const all  = cache.gmSales || [];
+  const pend = all.filter(x => x.status === 'pending');
+  const done = all.filter(x => x.status !== 'pending');
+  const okN  = all.filter(x => x.status === 'approved').length;
+  const on   = st.gmSellOn !== false;
+  return `
+    ${viewHead('✉️','Gmail Sell','রেট, পাসওয়ার্ড ও সাবমিট করা Gmail',
+      `<span class="pill-stat warn">${pend.length} Pending</span>
+       <span class="pill-stat info">${okN} Approved</span>`
+    )}
+    <div class="card">
+      <h3 class="blue"><span class="ic">⚙️</span> সেটিংস</h3>
+      <div class="form-grid">
+        <div class="field"><label>প্রতি Gmail-এর রেট (BDT)</label><input id="gm_rate" type="number" step="0.01" min="0" value="${esc(st.gmSellRate ?? '')}" placeholder="যেমন 5.00"></div>
+        <div class="field"><label>Gmail-এ সেট করার পাসওয়ার্ড</label><input id="gm_pass" maxlength="40" value="${esc(st.gmSellPass ?? '')}" placeholder="TECHBD2024"></div>
+        <div class="field"><label>Gmail জমা নেওয়া</label>
+          <select id="gm_on"><option value="1" ${on ? 'selected' : ''}>চালু (ON)</option><option value="0" ${on ? '' : 'selected'}>বন্ধ (OFF)</option></select>
+        </div>
+      </div>
+      <button class="btn" style="margin-top:16px" onclick="saveGmSell()">💾 Save</button>
+    </div>
+    <div class="card">
+      <h3 class="amber"><span class="ic">⏳</span> Pending (${pend.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Gmail</th><th>Password</th><th>Rate</th><th>Time</th><th>Actions</th></tr></thead>
+          <tbody>${pend.map(x => `
+            <tr>
+              <td><b>${esc(x.name || x.uid)}</b></td>
+              <td><span class="code-snip">${esc(x.gmail || x.id)}</span> <button class="btn sm" data-t="${esc(x.gmail || x.id)}" onclick="gmCopy(this.dataset.t)">Copy</button></td>
+              <td><span class="code-snip">${esc(x.pw)}</span> <button class="btn sm" data-t="${esc(x.pw)}" onclick="gmCopy(this.dataset.t)">Copy</button></td>
+              <td><b style="color:#b45309">৳${(+x.rate || 0).toFixed(2)}</b></td>
+              <td>${x.ts ? new Date(tsMs(x.ts)).toLocaleString() : '—'}</td>
+              <td class="row-act">
+                <button class="btn sm" onclick="gmAct('${esc(x.id)}','approved')">✓ Approve</button>
+                <button class="btn sm red" onclick="gmAct('${esc(x.id)}','rejected')">✗ Reject</button>
+              </td>
+            </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">✅</span>Pending নেই</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">📜</span> History (${done.length})</h3>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>User</th><th>Gmail</th><th>Rate</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody>${done.slice(0,150).map(x => `
+            <tr>
+              <td>${esc(x.name || x.uid)}</td>
+              <td><span class="code-snip">${esc(x.gmail || x.id)}</span></td>
+              <td>৳${(+x.rate || 0).toFixed(2)}</td>
+              <td>${x.status === 'approved' ? '<span class="badge ok">Approved</span>' : '<span class="badge rej">Rejected</span>'}${x.note ? ` <small style="opacity:.6">(${esc(x.note)})</small>` : ''}</td>
+              <td>${x.ts ? new Date(tsMs(x.ts)).toLocaleString() : '—'}</td>
+            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📜</span>—</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+async function saveGmSell(){
+  const rate = Math.round(parseFloat($('gm_rate').value) * 100) / 100;
+  const pass = $('gm_pass').value.trim().slice(0, 40);
+  const on   = $('gm_on').value === '1';
+  if (!isFinite(rate) || rate < 0 || rate > 100000) return toast('সঠিক রেট দিন', 'err');
+  try{
+    await setDoc('settings', 'app', { gmSellRate: rate, gmSellPass: pass, gmSellOn: on });
+    toast('✅ সেভ হয়েছে');
+    go('gmsell');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+function gmCopy(t){
+  try{ navigator.clipboard.writeText(t); }
+  catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); }
+  toast('Copied ✅', 'info');
+}
+async function gmAct(id, status){
+  const ok = await confirmDialog(
+    status === 'approved' ? 'Approve Gmail?' : 'Reject Gmail?',
+    status === 'approved' ? 'অ্যাপ্রুভ করলে ইউজারের একাউন্টে টাকা যোগ হবে।' : 'রিজেক্ট করলে ইউজারকে রিজেক্ট মেসেজ যাবে।',
+    status === 'approved' ? '✓ Approve' : '✗ Reject'
+  );
+  if (!ok) return;
+  const note = status === 'rejected' ? (prompt('কারণ লিখুন (optional):') || '').slice(0, 120) : '';
+  try{
+    const ref = db.collection('gmSales').doc(id);
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists || snap.data().status !== 'pending') throw new Error('এটি আগেই প্রসেস হয়েছে');
+      const d = snap.data();
+      if (status === 'approved'){
+        const amt = Math.round((+d.rate || 0) * 100) / 100;
+        if (!(amt > 0)) throw new Error('রেট সঠিক নয়');
+        tx.set(db.collection('adjustments').doc('gm_' + id), { uid: d.uid, amount: amt, note: 'Gmail Sell: ' + id, by: (auth.currentUser?.email || ''), ts: TS() });
+      }
+      tx.update(ref, { status, note, reviewedAt: TS() });
+    });
+    toast(status === 'approved' ? '✓ Approve হয়েছে, টাকা যোগ হয়েছে' : '✗ Reject হয়েছে');
+    publishLeaderboard(true);
+    await refreshAll(); go('gmsell');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+
+/* ═══════════════ SHARED ═══════════════ */
+async function delRow(col, id){
+  const ok = await confirmDialog('Delete Item?', 'আপনি কি নিশ্চিত? এটি মুছে ফেলবেন?', '🗑 Delete');
+  if (!ok) return;
+  try{
+    await delDoc(col, id);
+    toast('মুছে ফেলা হয়েছে ✅');
+    await refreshAll();
+    if (col === 'promos') go('promos');
+    else if (col === 'ads') go('ads');
+    else if (col === 'tasks') go('tasks');
+    else if (col === 'banners') go('banners');
+    else if (col === 'announcements') go('announce');
+    else if (col === 'supportQ' || col === 'faq') go('support');
+    else showHome();
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+async function toggleActive(col, id, active){
+  try{
+    await updateDoc(col, id, { active });
+    await refreshAll();
+    if (col === 'ads') go('ads');
+    else if (col === 'tasks') go('tasks');
+    else if (col === 'banners') go('banners');
+    else showHome();
+  }catch(e){ toast('ব্যর্থ: '+e.message, 'err'); }
+}
+</script>
+<script type="text/plain" id="rulesTxt">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.email == "mustafizurmd459@gmail.com"; }
+    function mine() { return signedIn() && request.resource.data.uid == request.auth.uid; }
+    function appSettings() {
+      return exists(/databases/$(database)/documents/settings/app)
+        ? get(/databases/$(database)/documents/settings/app).data : {};
+    }
+
+    match /ads/{id}           { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /tasks/{id}         { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /banners/{id}       { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /announcements/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /faq/{id}           { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /settings/{id}      { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /promos/{id}        { allow read: if signedIn(); allow write: if isAdmin(); }
+
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == uid && !('banned' in request.resource.data);
+      allow update: if (signedIn() && request.auth.uid == uid
+                        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['banned']))
+                    || isAdmin();
+    }
+
+    match /private/{id}    { allow read, write: if isAdmin(); }
+    match /pings/{id} { allow create: if signedIn() && request.resource.data.from == request.auth.uid; allow read, delete: if isAdmin(); allow update: if false; }
+    match /leaderboard/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /payoutsFeed/{id} { allow read: if signedIn(); allow write: if isAdmin(); }
+    match /tgLinks/{id}    { allow read: if isAdmin() || (signedIn() && request.auth.uid == id); allow write: if isAdmin(); }
+    match /botUsers/{id}   { allow read, write: if isAdmin(); }
+    match /broadcasts/{id} { allow read, write: if isAdmin(); }
+    match /tgReq/{id} {
+      allow create, update: if signedIn() && request.auth.uid == id && request.resource.data.keys().hasOnly(['initData','ts']);
+      allow read, delete: if isAdmin();
+    }
+
+    match /refBonuses/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+    match /adjustments/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow write: if isAdmin();
+    }
+    match /callLogs/{id} {
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow read: if isAdmin();
+    }
+
+    match /taskDone/{id}  { allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+                            allow create: if mine() && id == request.auth.uid + "_" + request.resource.data.taskId
+                              && get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.reward == request.resource.data.reward; }
+    match /adViews/{id}   { allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+                            allow create: if mine() && id == request.auth.uid + "_" + request.resource.data.adId + "_" + request.resource.data.slot
+                              && request.resource.data.slot.matches('^[0-9]{10}(-[0-9])?$')
+                              && get(/databases/$(database)/documents/ads/$(request.resource.data.adId)).data.reward == request.resource.data.reward; }
+    match /bonuses/{id}   { allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+                            allow create: if mine() && id == request.auth.uid + "_" + request.resource.data.day
+                              && get(/databases/$(database)/documents/settings/app).data.dailyBonus == request.resource.data.reward; }
+    match /promoUse/{id}  { allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+                            allow create: if mine() && id == request.auth.uid + "_" + request.resource.data.code
+                              && get(/databases/$(database)/documents/promos/$(request.resource.data.code)).data.reward == request.resource.data.reward; }
+
+    match /withdrawals/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if mine()
+                    && request.resource.data.keys().hasOnly(['uid','name','amount','method','address','status','ts'])
+                    && request.resource.data.status == "pending"
+                    && request.resource.data.amount is number
+                    && request.resource.data.amount >= appSettings().get('minWithdraw', 0.5)
+                    && appSettings().get('withdrawOn', true) != false;
+      allow update, delete: if isAdmin();
+    }
+
+    function fbSaleOk(id) {
+      return request.resource.data.keys().hasOnly(['uid','name','fbUid','key','rate','status','ts'])
+          && request.resource.data.status == "pending"
+          && request.resource.data.fbUid == id
+          && request.resource.data.rate is number
+          && request.resource.data.rate > 0
+          && request.resource.data.rate == appSettings().get('fbSellRate', 0)
+          && appSettings().get('fbSellOn', true) != false;
+    }
+    match /fbSales/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if mine() && fbSaleOk(id);
+      allow update: if isAdmin() || (mine() && resource.data.uid == request.auth.uid && resource.data.status == "rejected" && fbSaleOk(id));
+      allow delete: if isAdmin();
+    }
+
+    function igSaleOk(id) {
+      return request.resource.data.keys().hasOnly(['uid','name','igUser','key','rate','status','ts'])
+          && request.resource.data.status == "pending"
+          && request.resource.data.igUser == id
+          && request.resource.data.rate is number
+          && request.resource.data.rate > 0
+          && request.resource.data.rate == appSettings().get('igSellRate', 0)
+          && appSettings().get('igSellOn', true) != false;
+    }
+    match /igSales/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if mine() && igSaleOk(id);
+      allow update: if isAdmin() || (mine() && resource.data.uid == request.auth.uid && resource.data.status == "rejected" && igSaleOk(id));
+      allow delete: if isAdmin();
+    }
+
+    function gmSaleOk(id) {
+      return request.resource.data.keys().hasOnly(['uid','name','gmail','pw','rate','status','ts'])
+          && request.resource.data.status == "pending"
+          && request.resource.data.gmail == id
+          && request.resource.data.rate is number
+          && request.resource.data.rate > 0
+          && request.resource.data.rate == appSettings().get('gmSellRate', 0)
+          && appSettings().get('gmSellOn', true) != false;
+    }
+    match /gmSales/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if mine() && gmSaleOk(id);
+      allow update: if isAdmin() || (mine() && resource.data.uid == request.auth.uid && resource.data.status == "rejected" && gmSaleOk(id));
+      allow delete: if isAdmin();
+    }
+
+    match /gameWins/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if mine()
+                    && request.resource.data.keys().hasOnly(['uid','day','slot','level','reward','ts'])
+                    && request.resource.data.day.matches('^[0-9]{8}$')
+                    && request.resource.data.slot.matches(request.resource.data.day + '-([0-9]|[1-4][0-9])')
+                    && id == request.auth.uid + "_" + request.resource.data.slot
+                    && request.resource.data.reward is number
+                    && request.resource.data.reward > 0
+                    && request.resource.data.reward == appSettings().get('gameReward', 0)
+                    && appSettings().get('gameOn', true) != false;
+    }
+
+    match /supportQ/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if mine();
+      allow update, delete: if isAdmin();
+    }
+
+    match /friendReqs/{id} {
+      allow read: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow update: if signedIn() && resource.data.to == request.auth.uid;
+      allow delete: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+    }
+    match /friends/{id} {
+      allow read: if signedIn() && request.auth.uid in resource.data.members;
+      allow create: if signedIn() && request.auth.uid in request.resource.data.members;
+    }
+    match /chats/{chat} {
+      allow read: if isAdmin();
+      allow read, write: if signedIn() && (request.auth.uid in resource.data.members || (request.resource != null && request.auth.uid in request.resource.data.members));
+      match /msgs/{m} {
+        allow read: if isAdmin() || (signedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chat)).data.members);
+        allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      }
+      match /blobs/{b} {
+        allow read: if isAdmin() || (signedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chat)).data.members);
+        allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      }
+    }
+    match /signals/{id} {
+      allow create: if signedIn() && request.resource.data.from == request.auth.uid;
+      allow read, delete: if signedIn() && resource.data.to == request.auth.uid;
+    }
+  }
+}
+</script>
+</body>
+</html>
