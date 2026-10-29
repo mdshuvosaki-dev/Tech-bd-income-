@@ -449,6 +449,7 @@ function showHome(){
     { v:'users',       icon:'👥', label:'Users',         desc:'সব মেম্বার দেখুন ও কন্ট্রোল করুন',  color:'f-blue'   },
     { v:'ads',         icon:'💵', label:'Ads',           desc:'বিজ্ঞাপন যোগ, এডিট, ডিলিট',        color:'f-primary' },
     { v:'game',        icon:'🎮', label:'Game',          desc:'Bubble Shooter: লেভেল, reward, ad', color:'f-indigo' },
+    { v:'join',        icon:'📣', label:'Join Gate',     desc:'চ্যানেল/গ্রুপ জয়েন না করলে অ্যাপ বন্ধ', color:'f-orange' },
     { v:'tasks',       icon:'✅', label:'Tasks',         desc:'Web, YouTube, Telegram টাস্ক',     color:'f-emerald' },
     { v:'banners',     icon:'🎨', label:'Banners',       desc:'হোম স্ক্রিনের ব্যানার',            color:'f-purple' },
     { v:'withdrawals', icon:'👛', label:'Withdrawals',   desc:'পেমেন্ট রিকোয়েস্ট অ্যাপ্রুভ',      color:'f-amber',   badge:pending },
@@ -530,6 +531,8 @@ function go(v){
         view.innerHTML = await viewFbSell();
       } else if (v === 'game') {
         view.innerHTML = await viewGame();
+      } else if (v === 'join') {
+        view.innerHTML = await viewJoin();
       } else if (v === 'chats') {
         view.innerHTML = await viewChats();
       } else if (map[v]) {
@@ -628,6 +631,7 @@ function tgLog(m){ TGE.log.unshift(new Date().toLocaleTimeString() + '  ' + m); 
 function setTgBadge(){
   let b = $('tgBadge');
   if (!b){ b = document.createElement('div'); b.id = 'tgBadge'; b.onclick = () => go('settings'); b.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:50;padding:7px 12px;border-radius:20px;font:700 12px system-ui;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.2)'; document.body.appendChild(b); }
+  if (TGE.py && TGE.tok){ b.textContent = TGE.pyOk === false ? '🐍 bot.py সাড়া দিচ্ছে না' : '🐍 bot.py ২৪/৭'; b.style.background = TGE.pyOk === false ? '#dc2626' : '#16a34a'; b.style.color = '#fff'; return; }
   b.textContent = TGE.on ? '🤖 Bot ON — পেজ খোলা রাখুন' : (TGE.tok ? '🤖 Bot OFF' : '🤖 Bot: Token দিন');
   b.style.background = TGE.on ? '#16a34a' : '#dc2626'; b.style.color = '#fff';
 }
@@ -688,8 +692,10 @@ const tgOf = async uid => { const d = await db.collection('tgLinks').doc(String(
 async function tgBoot(){
   try{
     const d = await db.collection('private').doc('bot').get(), c = d.exists ? d.data() : {};
-    TGE.tok = c.token || ''; TGE.chan = c.channelId || TGE.chan; TGE.uname = c.botUsername || TGE.uname;
+    TGE.cfg = c; TGE.tok = c.token || ''; TGE.chan = c.channelId || TGE.chan; TGE.uname = c.botUsername || TGE.uname; TGE.py = c.pyMode === true; TGE.proof = c.proofChannel || '';
   }catch(e){ tgLog('config load failed: ' + e.message); }
+  if (TGE.pyIv){ clearInterval(TGE.pyIv); TGE.pyIv = null; }
+  if (TGE.tok && TGE.py){ tgStop(); pyWatch(); tgLog('🐍 bot.py Mode চালু — বট এখন bot.py দিয়ে চলছে (এই পেজ বন্ধ থাকলেও)'); return; }
   if (TGE.tok) tgStart(); else setTgBadge();
 }
 function tgStop(){ TGE.gen++; TGE.on = false; TGE.unsub.forEach(f => { try{ f(); }catch(e){} }); TGE.unsub = []; if (TGE.lbIv) clearInterval(TGE.lbIv); setTgBadge(); }
@@ -804,9 +810,7 @@ async function tgWithdraw(snap){
       ? `✅ <b>Withdraw Approved!</b>\n\n💰 ${bdt(w.amount)}\n🏦 ${tEsc(w.method)} — <code>${tEsc(w.address)}</code>\n\nপেমেন্ট পাঠানো হয়েছে। ধন্যবাদ!`
       : `❌ <b>Withdraw Rejected</b>\n\n💰 ${bdt(w.amount)}\n${w.note ? '📝 কারণ: ' + tEsc(w.note) + '\n' : ''}\nটাকা আপনার ব্যালেন্সে ফেরত এসেছে।` });
     if (ok){
-      const name = (w.name || '').trim();
-      const masked = name ? (name.length > 2 ? name[0] + '***' + name.slice(-1) : name[0] + '***') : 'User';
-      await db.collection('payoutsFeed').add({ name: masked, amount: +w.amount, method: w.method, ts: TS() }).catch(() => {});
+      await publishPayout(snap.id, w).catch(() => {});
     }
     const fresh = (await ref.get()).data() || {};
     if (fresh.chMsgId && fresh.chText) tgTry('editMessageText', { chat_id: TGE.chan, message_id: fresh.chMsgId, parse_mode:'HTML', text: fresh.chText + `\n\n${ok ? '✅ <b>APPROVED</b>' : '❌ <b>REJECTED</b>'} ${tEsc(fresh.reviewedVia || '(admin panel)')}`, reply_markup:{ inline_keyboard: [] } });
@@ -854,14 +858,54 @@ async function tgLinkReq(snap){
   }
   await snap.ref.delete().catch(() => {});
 }
+/* =============== bot.py MODE (24/7 bot on your own computer / server) =============== */
+function pyHtml(){
+  if (!TGE.py) return '⚪ bot.py Mode বন্ধ — বট শুধু এই পেজ খোলা থাকলে চলছে।';
+  const t = TGE.pyAt || 0, ago = t ? Math.max(0, Math.round((Date.now() - t) / 1000)) : null;
+  if (TGE.pyOk === false || ago === null) return '🔴 bot.py Mode চালু, কিন্তু bot.py সাড়া দিচ্ছে না' + (ago === null ? '' : ' (শেষ সাড়া ' + Math.round(ago / 60) + ' মিনিট আগে)') + '। কম্পিউটার/সার্ভারে <code>python3 bot.py</code> চলছে কিনা দেখুন।';
+  return '🟢 bot.py চলছে — ২৪ ঘন্টা (শেষ সাড়া ' + ago + ' সেকেন্ড আগে' + (TGE.pyHost ? ', ' + esc(TGE.pyHost) : '') + (TGE.pyVer ? ', v' + esc(TGE.pyVer) : '') + ')';
+}
+async function pyPoll(){
+  try{
+    const d = await db.collection('private').doc('botStatus').get(), x = d.exists ? d.data() : {}, t = x.ts ? tsMs(x.ts) : 0;
+    TGE.pyAt = t; TGE.pyOk = t > 0 && Date.now() - t < 120000 && x.state === 'running' && x.engine === 'bot.py'; TGE.pyVer = x.version || ''; TGE.pyHost = x.host || '';
+  }catch(e){ TGE.pyOk = false; }
+  setTgBadge(); const e = $('pyStatus'); if (e) e.innerHTML = pyHtml();
+}
+function pyWatch(){ if (TGE.pyIv) clearInterval(TGE.pyIv); TGE.pyOk = undefined; setTgBadge(); pyPoll(); TGE.pyIv = setInterval(pyPoll, 60000); }
+async function botPyOn(){
+  if (!TGE.tok) return toast('আগে Bot Token সেভ করুন', 'err');
+  try{
+    await db.collection('private').doc('bot').set({ pyMode: true }, { merge: true });
+    TGE.cfg = Object.assign({}, TGE.cfg, { pyMode: true }); tgStop(); TGE.py = true; pyWatch();
+    toast('✅ bot.py Mode চালু। এখন আপনার কম্পিউটার/সার্ভারে bot.py চালান');
+    setTimeout(() => go('settings'), 1000);
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+async function botPyOff(){
+  if (!await confirmDialog('bot.py Mode বন্ধ করবেন?', 'বট আবার শুধু এই পেজ খোলা থাকলে চলবে। bot.py নিজে থেকে অপেক্ষায় থাকবে।', 'বন্ধ করুন')) return;
+  try{
+    await db.collection('private').doc('bot').set({ pyMode: false }, { merge: true });
+    TGE.cfg = Object.assign({}, TGE.cfg, { pyMode: false }); TGE.py = false;
+    if (TGE.pyIv){ clearInterval(TGE.pyIv); TGE.pyIv = null; }
+    toast('bot.py Mode বন্ধ হয়েছে, পেজ-বট চালু হচ্ছে…'); await tgBoot(); setTimeout(() => go('settings'), 1000);
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+async function botPyCheck(){
+  await pyPoll();
+  toast(TGE.py ? (TGE.pyOk ? '🟢 bot.py চলছে' : '🔴 bot.py সাড়া দিচ্ছে না') : 'bot.py Mode বন্ধ আছে', TGE.py && !TGE.pyOk ? 'err' : undefined);
+}
 async function saveBot(){
   const t = $('bt_tok').value.trim(), ch = $('bt_ch').value.trim(), un = $('bt_un').value.trim().replace(/^@/, '');
+  const pc = $('bt_pc').value.trim(), pu = $('bt_pu').value.trim();
+  if (pc && !/^(-?\d{5,20}|@\w{4,})$/.test(pc)) return toast('Proof Channel ID ঠিক নয় (যেমন -1001234567890 বা @channel)', 'err');
+  if (pu && !/^https:\/\/t\.me\/[A-Za-z0-9_+\/-]{3,60}$/.test(pu)) return toast('Proof Channel লিংক ঠিক নয় (https://t.me/… হতে হবে)', 'err');
   if (t && !/^\d{6,12}:[A-Za-z0-9_-]{30,}$/.test(t)) return toast('Token ফরম্যাট ঠিক নয়', 'err');
   if (!/^(-?\d{5,20}|@\w{4,})$/.test(ch)) return toast('Channel ID ঠিক নয় (যেমন -1001234567890)', 'err');
   if (!/^[A-Za-z0-9_]{4,40}$/.test(un)) return toast('Bot username ঠিক নয়', 'err');
   try{
-    await db.collection('private').doc('bot').set({ channelId: ch, botUsername: un, ...(t ? { token: t } : {}) }, { merge:true });
-    await db.collection('settings').doc('app').set({ botUsername: un }, { merge:true });
+    await db.collection('private').doc('bot').set({ channelId: ch, botUsername: un, proofChannel: pc, ...(pc !== String((TGE.cfg && TGE.cfg.proofChannel) || '') ? { proofPinned: false } : {}), ...(t ? { token: t } : {}) }, { merge:true });
+    await db.collection('settings').doc('app').set({ botUsername: un, proofChannelUrl: pu }, { merge:true });
     $('bt_tok').value = ''; toast('সেভ হয়েছে, বট চালু হচ্ছে…'); await tgBoot();
     setTimeout(() => go('settings'), 1500);
   }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
@@ -1191,20 +1235,74 @@ function viewWithdrawals(){
       <h3><span class="ic">📜</span> History (${done.length})</h3>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Time</th></tr></thead>
+          <thead><tr><th>User</th><th>Amount</th><th>Method</th><th>Status</th><th>Proof</th><th>Time</th></tr></thead>
           <tbody>${done.slice(0,150).map(w => `
             <tr>
               <td>${esc(w.name || w.uid)}</td>
               <td>৳${(+w.amount).toFixed(2)}</td>
               <td><span class="chip ${w.method==='Nagad'?'amber':'blue'}">${esc(w.method)}</span></td>
               <td>${w.status === 'approved' ? '<span class="badge ok">Approved</span>' : '<span class="badge rej">Rejected</span>'}${w.reviewedVia ? ` <small style="opacity:.6">(${esc(w.reviewedVia)})</small>` : ''}</td>
+              <td>${w.status === 'approved' ? (w.txid ? `<small>${esc(w.txid)}</small> ` : '') + `<button class="btn sm ghost" onclick="wdTx('${w.id}')">${w.txid ? '✎' : '＋ Txn ID'}</button>` : '—'}</td>
               <td>${w.ts ? new Date(tsMs(w.ts)).toLocaleString() : '—'}</td>
-            </tr>`).join('') || '<tr><td colspan="5" class="empty"><span class="em">📜</span>—</td></tr>'}
+            </tr>`).join('') || '<tr><td colspan="6" class="empty"><span class="em">📜</span>—</td></tr>'}
           </tbody>
         </table>
       </div>
     </div>
   `;
+}
+/* =============== PAYMENT PROOFS (public record of real payouts) =============== */
+const maskName = n => { n = String(n || '').trim(); return n ? (n.length > 2 ? n[0] + '***' + n.slice(-1) : n[0] + '***') : 'User'; };
+const maskAcct = a => { a = String(a || '').replace(/\s+/g, ''); return a.length >= 8 ? a.slice(0, 3) + '****' + a.slice(-3) : (a.length >= 3 ? '****' + a.slice(-2) : '****'); };
+function payoutData(id, w){
+  return { name: maskName(w.name), acct: maskAcct(w.address), method: String(w.method || ''), amount: +w.amount || 0,
+    ref: String(id).slice(0, 6).toUpperCase(), txid: String(w.txid || '').trim().slice(0, 40), ts: w.reviewedAt || w.ts || TS() };
+}
+/** One public record per approved withdrawal (document id = withdrawal id, so it can never be duplicated). */
+async function publishPayout(id, w){
+  const d = payoutData(id, w), ref = db.collection('payoutsFeed').doc(id);
+  /* one transaction: the admin panel and bot.py can approve at the same moment, only ONE of them creates the record */
+  const created = await db.runTransaction(async tx => {
+    const ex = await tx.get(ref);
+    if (ex.exists){ const upd = { acct: d.acct, ref: d.ref, method: d.method }; if (d.txid) upd.txid = d.txid; tx.set(ref, upd, { merge: true }); return false; }
+    tx.set(ref, d); return true;
+  });
+  if (!created) return false;
+  await db.collection('settings').doc('payStats').set({ totalAmount: firebase.firestore.FieldValue.increment(d.amount), count: firebase.firestore.FieldValue.increment(1), last: TS() }, { merge: true }).catch(() => {});
+  if (TGE.proof && TGE.tok){
+    const ms = tsMs(d.ts), when = new Date(ms > 0 && isFinite(ms) ? ms : Date.now()).toLocaleString('en-GB', { timeZone: 'Asia/Dhaka', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    await tgTry('sendMessage', { chat_id: TGE.proof, parse_mode: 'HTML', disable_web_page_preview: true,
+      text: `✅ <b>Payment Sent</b>\n👤 ${tEsc(d.name)}\n🏦 ${tEsc(d.method)} • ${tEsc(d.acct)}\n💰 <b>BDT ${d.amount.toFixed(2)}</b>\n🕒 ${when} (BST)\n🧾 Ref #${d.ref}${d.txid ? ' • Txn: <code>' + tEsc(d.txid) + '</code>' : ''}` });
+  }
+  return true;
+}
+async function wdTx(id){
+  const w = cache.withdrawals.find(x => x.id === id); if (!w) return;
+  const v = (prompt('Transaction ID / Reference (পেমেন্টের প্রমাণ):', w.txid || '') || '').trim().slice(0, 40);
+  if (!v) return;
+  try{
+    await db.collection('withdrawals').doc(id).update({ txid: v });
+    w.txid = v; await publishPayout(id, w);
+    toast('✅ Txn ID সেভ হয়েছে, Payment Proofs-এ দেখাবে'); go('withdrawals');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+async function proofRebuild(){
+  if (!await confirmDialog('Payment Proofs সিঙ্ক করবেন?', 'সব Approved withdrawal থেকে Payment Proofs আর মোট হিসাব নতুন করে তৈরি হবে। আগের অসম্পূর্ণ/ডুপ্লিকেট রেকর্ড মুছে যাবে। শুধু সত্যিকারের পেমেন্টই দেখানো হবে।', 'সিঙ্ক করুন')) return;
+  try{
+    const snap = await db.collection('withdrawals').where('status', '==', 'approved').get(), ids = new Set();
+    let total = 0, n = 0;
+    for (const d of snap.docs){
+      const w = d.data(); ids.add(d.id); n++; total += +w.amount || 0;
+      const ref = db.collection('payoutsFeed').doc(d.id), ex = await ref.get(), x = payoutData(d.id, w);
+      if (ex.exists){ const u = { name: x.name, acct: x.acct, ref: x.ref, method: x.method, amount: x.amount }; if (x.txid) u.txid = x.txid; if (w.reviewedAt) u.ts = w.reviewedAt; await ref.set(u, { merge: true }); }
+      else await ref.set(x);
+    }
+    const old = await db.collection('payoutsFeed').get(); let removed = 0;
+    for (const d of old.docs) if (!ids.has(d.id)){ await d.ref.delete(); removed++; }
+    await db.collection('settings').doc('payStats').set({ totalAmount: Math.round(total * 100) / 100, count: n, last: TS() });
+    cache.payoutCount = n;
+    toast('✅ ' + n + 'টি পেমেন্ট প্রুফ তৈরি' + (removed ? ' (' + removed + 'টি পুরনো রেকর্ড সরানো হয়েছে)' : ''));
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
 }
 async function wdAct(id, status){
   const ok = await confirmDialog(
@@ -1214,8 +1312,10 @@ async function wdAct(id, status){
   );
   if (!ok) return;
   const note = status === 'rejected' ? (prompt('কারণ লিখুন (optional):') || '') : '';
+  const txid = status === 'approved' ? (prompt('Transaction ID / Reference লিখুন (পেমেন্টের প্রমাণ — Payment Proofs-এ দেখাবে):') || '').trim().slice(0, 40) : '';
   try{
-    await updateDoc('withdrawals', id, { status, note, reviewedAt: TS() });
+    await updateDoc('withdrawals', id, { status, note, reviewedAt: TS(), ...(txid ? { txid } : {}) });
+    if (status === 'approved'){ const w0 = cache.withdrawals.find(x => x.id === id); if (w0) await publishPayout(id, { ...w0, txid, reviewedAt: new Date() }).catch(() => {}); }
     toast(status==='approved' ? '✓ Approve হয়েছে' : '✗ Reject হয়েছে');
     publishLeaderboard(true);
     await refreshAll(); go('withdrawals');
@@ -1445,16 +1545,40 @@ async function viewSettings(){
 
     <div class="card">
       <h3><span class="ic">🤖</span> Telegram Bot (Withdraw নোটিফিকেশন, Refer, Broadcast)</h3>
-      <div class="notice"><span class="em">⚠️</span><div>বট <b>এই অ্যাডমিন পেজ খোলা থাকলে</b> চলে (কম্পিউটার বা ফোনের একটি ট্যাব খোলা রাখুন)। পেজ বন্ধ থাকলে নতুন রেফার ও withdraw নোটিফিকেশন জমে থাকে এবং পেজ খুললে প্রসেস হয়। Token শুধু অ্যাডমিনের জন্য সেভ হয়, ইউজার দেখতে পায় না।</div></div>
+      <div class="notice"><span class="em">⚠️</span><div>${TGE.py ? '🐍 <b>bot.py Mode চালু</b> — বট এখন আপনার কম্পিউটার/সার্ভারে <code>bot.py</code> দিয়ে ২৪ ঘন্টা চলছে। এই পেজ বন্ধ থাকলেও কাজ চলবে।' : 'এখন বট <b>এই অ্যাডমিন পেজ খোলা থাকলে</b> চলে। ২৪ ঘন্টা চালাতে নিচের <b>"bot.py Mode"</b> চালু করুন।'} Token শুধু অ্যাডমিনের জন্য সেভ হয়, ইউজার দেখতে পায় না।</div></div>
       <div class="form-grid">
         <div class="field full"><label>BOT TOKEN ${bc.token ? '(✅ সেভ আছে — বদলাতে নতুনটা দিন)' : ''}</label><input id="bt_tok" type="password" autocomplete="off" placeholder="${bc.token ? '••••••••••••' : '123456789:AA...'}"></div>
         <div class="field"><label>CHANNEL ID</label><input id="bt_ch" value="${esc(bc.channelId || '-1004408557794')}"></div>
         <div class="field"><label>BOT USERNAME (@ ছাড়া)</label><input id="bt_un" value="${esc(bc.botUsername || 'TECH_BD_INCOME_BOT')}"></div>
+        <div class="field"><label>PUBLIC PROOF CHANNEL ID (ঐচ্ছিক)</label><input id="bt_pc" value="${esc(bc.proofChannel || '')}" placeholder="-100… বা @channel"></div>
+        <div class="field"><label>PROOF CHANNEL LINK (অ্যাপে দেখাবে)</label><input id="bt_pu" value="${esc(s.proofChannelUrl || '')}" placeholder="https://t.me/your_channel"></div>
       </div>
+      <div class="notice" style="margin-top:10px"><span class="em">✅</span><div><b>Payment Proofs:</b> প্রতিটা Approved withdrawal অ্যাপের "Payment Proofs" পেজে (মাস্ক করা নাম/নম্বর, পরিমাণ, তারিখ, Ref ও Txn ID সহ) দেখায়। উপরে একটা <b>পাবলিক</b> চ্যানেল দিলে বট প্রতিটা পেমেন্ট সেখানেও পোস্ট করে এবং একটা পিন করা মেসেজ রাখে। ⚠ এই চ্যানেল আলাদা হতে হবে — অ্যাডমিন চ্যানেলে ইউজারের নম্বর থাকে, সেটা পাবলিক করবেন না। এখন মোট প্রুফ: <b>${cache.payoutCount == null ? '—' : cache.payoutCount}</b>
+        <div style="margin-top:8px"><button class="btn ghost" type="button" onclick="proofRebuild()">🔄 Payment Proofs সিঙ্ক করুন</button></div></div></div>
       <div class="row-act" style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn" onclick="saveBot()">💾 Save & Start Bot</button>
         <button class="btn ghost" onclick="testBot()">🧪 Test</button>
         <button class="btn red" onclick="tgStop();toast('Bot বন্ধ হয়েছে')">⏹ Stop</button>
+      </div>
+      <div class="notice" style="margin-top:14px;flex-direction:column;align-items:stretch;gap:10px">
+        <div style="font-weight:800">🐍 bot.py Mode (২৪ ঘন্টা চলবে, প্যানেল বন্ধ থাকলেও)</div>
+        <div id="pyStatus" style="font-size:13px">${pyHtml()}</div>${TGE.py ? `<span style="display:none">${(setTimeout(pyPoll, 400), '')}</span>` : ''}
+        <div class="row-act" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" onclick="botPyOn()">🐍 bot.py Mode চালু করুন</button>
+          <button class="btn ghost" onclick="botPyCheck()">🔄 Status</button>
+          <button class="btn red" onclick="botPyOff()">⏹ বন্ধ করুন</button>
+        </div>
+        <details style="font-size:13px;line-height:1.7">
+          <summary style="cursor:pointer;font-weight:700">📘 একবার সেটআপ করার নিয়ম</summary>
+          <ol style="margin:8px 0 0;padding-left:20px">
+            <li>যে কম্পিউটার/সার্ভার সবসময় চালু থাকে সেখানে Python 3.8+ রাখুন এবং চালান: <code>pip install firebase-admin requests</code></li>
+            <li>Firebase Console → ⚙ Project settings → <b>Service accounts</b> → <b>Generate new private key</b>। ফাইলটার নাম <code>serviceAccountKey.json</code> দিয়ে <code>bot.py</code>-এর পাশে রাখুন (এটা গোপন রাখুন, ওয়েবসাইটে আপলোড করবেন না)।</li>
+            <li>উপরে Token ও Channel ID সেভ করুন, তারপর <b>"bot.py Mode চালু করুন"</b> চাপুন।</li>
+            <li>টার্মিনালে চালান: <code>python3 bot.py</code>। ২৪ ঘন্টা চালু রাখতে: <code>nohup python3 bot.py &amp;</code> অথবা <code>screen</code> / <code>pm2 start bot.py --interpreter python3</code>।</li>
+            <li>Status সবুজ হলে সব ঠিক আছে। বন্ধ করলে বট আবার পেজ-খোলা মোডে ফিরে যাবে।</li>
+          </ol>
+          <p style="margin:8px 0 0;opacity:.8">bot.py Mode চালু থাকলে এই পেজের ভেতরের বট বন্ধ থাকে (দুটো একসাথে চললে Telegram ঝামেলা করে)। Leaderboard আপডেট আলাদা, সেটা আগের মতো প্যানেল খোলা থাকলে হয়।</p>
+        </details>
       </div>
       <div class="notice" style="margin-top:14px">
         <span class="em">📊</span>
@@ -1469,6 +1593,7 @@ async function viewSettings(){
       <label style="display:block;margin:14px 0 6px;font-weight:700;font-size:12px">BOT LOG</label>
       <pre id="tgLogBox" style="max-height:170px;overflow:auto;background:#0f172a;color:#cbd5e1;padding:10px;border-radius:12px;font-size:11px;white-space:pre-wrap">${esc(TGE.log.join('\n'))}</pre>
     </div>
+    ${joinCard(s)}
     ${aiCard(ai, s)}
     <div class="card">
       <h3><span class="ic">📜</span> Firestore Rules (একবার সেট করতে হবে)</h3>
@@ -1648,6 +1773,180 @@ async function gameSave(){
   try{
     await db.collection('settings').doc('app').set({ gameOn: $('gm_on').checked, gameReward: rew, gameDaily: day, gameAdBefore: $('gm_ab').checked, gameAdAfter: $('gm_aa').checked, gameLevels: levels }, { merge: true });
     toast('Game সেভ হয়েছে ✅ (' + levels.length + 'টি লেভেল)');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+/* =============== FORCE JOIN (Admin) =============== */
+function jfRowHtml(it){
+  it = it || {};
+  return `<div class="jf-row" style="border:1px solid rgba(128,128,128,.3);border-radius:14px;padding:12px;margin-top:10px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <select class="jf-k" style="flex:1;min-width:120px"><option value="channel" ${it.kind === 'group' ? '' : 'selected'}>📢 Channel</option><option value="group" ${it.kind === 'group' ? 'selected' : ''}>👥 Group</option></select>
+      <button class="btn ghost" type="button" onclick="jfMove(this,-1)">▲</button>
+      <button class="btn ghost" type="button" onclick="jfMove(this,1)">▼</button>
+      <button class="btn red" type="button" onclick="this.closest('.jf-row').remove()">🗑</button>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>NAME (ইউজার যা দেখবে)</label><input class="jf-t" maxlength="40" value="${esc(it.title || '')}" placeholder="@MyChannel"></div>
+      <div class="field"><label>LINK (https://t.me/…)</label><input class="jf-l" value="${esc(it.link || '')}" placeholder="https://t.me/mychannel"></div>
+      <div class="field"><label>CHAT ID বা @username (যাচাইয়ের জন্য)</label><input class="jf-c" value="${esc(it.chat || '')}" placeholder="@mychannel বা -1001234567890"></div>
+      <div class="field"><label>LOGO LINK (ঐচ্ছিক, https://…)</label><input class="jf-g" value="${esc(it.logo || '')}" placeholder="ফাঁকা থাকলে চ্যানেলের ছবি নিজে আসবে"></div>
+    </div>
+    <button class="btn" type="button" style="margin-top:10px" onclick="jfCheck(this)">🔎 বট Admin কিনা চেক করুন</button>
+  </div>`;
+}
+function joinCard(s){
+  const f = s.forceJoin || {}, list = Array.isArray(f.items) ? f.items : [];
+  return `<div class="card">
+    <h3><span class="ic">📢</span> Force Join (চ্যানেল/গ্রুপে জয়েন বাধ্যতামূলক)</h3>
+    <div class="notice"><span class="em">ℹ️</span><div>
+      ইউজার অ্যাপ খুললে লোডিংয়ের পর "Join to continue" দেখাবে। সবগুলো চ্যানেল/গ্রুপে জয়েন না করলে অ্যাপের কিছুই ব্যবহার করতে পারবে না।<br>
+      যাচাই করে <b>bot.py</b> (২৪ ঘন্টা চালু থাকতে হবে)। <b>বটকে প্রতিটা চ্যানেলের Admin</b> বানাতে হবে (গ্রুপে অন্তত মেম্বার, ভালো হয় Admin)। নইলে যাচাই হবে না।<br>
+      ⚠️ এই ফিচারের জন্য Firestore Rules আপডেট করে Publish করতে হবে (নিচের "Firestore Rules" থেকে কপি করুন)।
+    </div></div>
+    <label style="display:flex;gap:8px;align-items:center;font-weight:700;margin:6px 0 0"><input type="checkbox" id="jf_on" ${f.on === true ? 'checked' : ''}> Force Join চালু</label>
+    <div id="jfList">${list.map(jfRowHtml).join('')}</div>
+    <div class="row-act" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" type="button" onclick="jfAdd()">＋ চ্যানেল/গ্রুপ যোগ করুন</button>
+      <button class="btn blue" type="button" onclick="jfSave()">💾 Save Force Join</button>
+    </div>
+  </div>`;
+}
+function jfAdd(){ if (document.querySelectorAll('#jfList .jf-row').length >= 10) return toast('সর্বোচ্চ ১০টি', 'err'); $('jfList').insertAdjacentHTML('beforeend', jfRowHtml({})); }
+function jfMove(btn, dir){ const row = btn.closest('.jf-row'), sib = dir < 0 ? row.previousElementSibling : row.nextElementSibling; if (!sib) return; dir < 0 ? sib.before(row) : sib.after(row); }
+function jfRead(row){
+  const link = row.querySelector('.jf-l').value.trim();
+  let chat = row.querySelector('.jf-c').value.trim();
+  const m = /^https:\/\/t\.me\/([A-Za-z0-9_]{5,32})$/.exec(link);
+  if (!chat && m) chat = '@' + m[1];
+  return { kind: row.querySelector('.jf-k').value === 'group' ? 'group' : 'channel', title: row.querySelector('.jf-t').value.trim().slice(0, 40), link, chat, logo: row.querySelector('.jf-g').value.trim() };
+}
+function jfValid(it){
+  if (!it.title) return 'নাম লিখুন';
+  if (!/^https:\/\/t\.me\/[A-Za-z0-9_+\/-]{3,60}$/.test(it.link)) return it.title + ': লিংক ঠিক নয় (https://t.me/… হতে হবে)';
+  if (!/^(@[A-Za-z0-9_]{5,32}|-100\d{6,14})$/.test(it.chat)) return it.title + ': Chat ID ঠিক নয় (@username বা -100… দিন; প্রাইভেট হলে সংখ্যার আইডি লাগবে)';
+  if (it.logo && !/^https:\/\/[^\s"'<>]{3,300}$/.test(it.logo)) return it.title + ': Logo লিংক ঠিক নয়';
+  return '';
+}
+async function jfCheck(btn){
+  const it = jfRead(btn.closest('.jf-row')), bad = jfValid(it);
+  if (bad) return toast(bad, 'err');
+  if (!TGE.tok) return toast('আগে Bot Token সেভ করুন', 'err');
+  const old = btn.textContent; btn.textContent = '…'; btn.disabled = true;
+  try{
+    const c = await tgApi('getChat', { chat_id: it.chat });
+    const m = await tgApi('getChatMember', { chat_id: it.chat, user_id: +String(TGE.tok).split(':')[0] });
+    const adm = m.status === 'administrator' || m.status === 'creator';
+    toast((adm ? '✅ ' : '⚠️ ') + (c.title || it.chat) + (adm ? ' — বট Admin আছে, যাচাই কাজ করবে' : ' — বটকে এই ' + (it.kind === 'group' ? 'গ্রুপে' : 'চ্যানেলে') + ' Admin বানান'), adm ? undefined : 'err');
+  }catch(e){ toast('❌ ' + e.message + ' (বট কি এখানে যোগ করা আছে?)', 'err'); }
+  btn.textContent = old; btn.disabled = false;
+}
+async function jfSave(){
+  const items = [...document.querySelectorAll('#jfList .jf-row')].map(jfRead), on = $('jf_on').checked;
+  for (const it of items){ const bad = jfValid(it); if (bad) return toast(bad, 'err'); }
+  if (on && !items.length) return toast('অন্তত একটা চ্যানেল/গ্রুপ যোগ করুন', 'err');
+  try{
+    await db.collection('settings').doc('app').set({ forceJoin: { on, items: items.slice(0, 10) } }, { merge: true });
+    toast(on ? 'Force Join চালু হয়েছে ✅' : 'Force Join সেভ হয়েছে (বন্ধ আছে)');
+  }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
+}
+/* =============== JOIN GATE (Admin) =============== */
+const JOIN_MAX = 10;
+const JOIN_LINK = /^https:\/\/t\.me\/(\+[A-Za-z0-9_-]{6,40}|joinchat\/[A-Za-z0-9_-]{6,40}|[A-Za-z0-9_]{4,32})$/;
+const JOIN_CHAT = /^(@[A-Za-z0-9_]{4,32}|-100\d{6,14})$/;
+function joinRowHtml(it){
+  it = it || {};
+  return `<div class="jn-row" style="border:1px solid rgba(128,128,128,.3);border-radius:14px;padding:12px;margin-top:10px">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px">
+      <select class="jn-t" style="flex:1;min-width:120px"><option value="channel" ${it.type === 'group' ? '' : 'selected'}>📣 Channel</option><option value="group" ${it.type === 'group' ? 'selected' : ''}>👥 Group</option></select>
+      <button class="btn ghost" type="button" onclick="joinMove(this,-1)">▲</button>
+      <button class="btn ghost" type="button" onclick="joinMove(this,1)">▼</button>
+      <button class="btn ghost" type="button" onclick="joinTest(this)">🔍 Test</button>
+      <button class="btn red" type="button" onclick="this.closest('.jn-row').remove()">🗑</button>
+    </div>
+    <div class="form-grid">
+      <div class="field"><label>NAME (ইউজারকে যা দেখাবে)</label><input class="jn-n" maxlength="40" value="${esc(it.name || '')}" placeholder="@MyChannel"></div>
+      <div class="field"><label>ICON লিংক (ঐচ্ছিক, https ছবি)</label><input class="jn-i" value="${esc(it.icon || '')}" placeholder="https://…/logo.png"></div>
+      <div class="field full"><label>JOIN LINK (https://t.me/…)</label><input class="jn-l" value="${esc(it.url || '')}" placeholder="https://t.me/your_channel" oninput="joinAuto(this)"></div>
+      <div class="field full"><label>CHAT (যাচাইয়ের জন্য: @username অথবা -100… আইডি)</label><input class="jn-c" value="${esc(it.chat || '')}" placeholder="@your_channel"></div>
+    </div>
+  </div>`;
+}
+async function viewJoin(){
+  let j = {};
+  try{ const d = await db.collection('settings').doc('join').get(); j = d.exists ? d.data() : {}; }catch(e){ console.warn('join settings:', e.message); }
+  const items = Array.isArray(j.items) ? j.items : [];
+  return `
+    ${viewHead('📣', 'Join Gate', 'চ্যানেল/গ্রুপে জয়েন না করলে ইউজার অ্যাপ ব্যবহার করতে পারবে না')}
+    <div class="card">
+      <h3><span class="ic">⚙️</span> সেটিং</h3>
+      <div class="notice"><span class="em">ℹ️</span><div>
+        ইউজার অ্যাপ খুললে লোডিংয়ের পর <b>"Join to continue"</b> স্ক্রিন আসবে। সব চ্যানেল/গ্রুপে জয়েন না করা পর্যন্ত অ্যাপের কিছুই ব্যবহার করতে পারবে না।<br>
+        <b>যাচাই চালু থাকলে</b> bot.py সত্যিই জয়েন করেছে কিনা দেখে। এর জন্য: (১) bot.py চালু থাকতে হবে, (২) বটকে ওই চ্যানেল/গ্রুপের <b>Admin</b> বানাতে হবে, (৩) CHAT ঘরে @username বা -100… আইডি থাকতে হবে (পাবলিক লিংক দিলে নিজে ভরে যায়, প্রাইভেট t.me/+… লিংকে আইডি নিজে দিতে হবে)। CHAT ফাঁকা থাকলে ওই আইটেম যাচাই হয় না, শুধু Join বাটনে ট্যাপ করলেই হবে।
+      </div></div>
+      <div class="form-grid">
+        <div class="field"><label>JOIN GATE</label><select id="jn_on"><option value="true" ${j.on === true ? 'selected' : ''}>চালু</option><option value="false" ${j.on === true ? '' : 'selected'}>বন্ধ</option></select></div>
+        <div class="field"><label>যাচাই পদ্ধতি</label><select id="jn_v"><option value="true" ${j.verify === false ? '' : 'selected'}>bot.py দিয়ে সত্যিই যাচাই (প্রস্তাবিত)</option><option value="false" ${j.verify === false ? 'selected' : ''}>শুধু Join ট্যাপ করলেই চলবে</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3><span class="ic">📋</span> চ্যানেল / গ্রুপ (সর্বোচ্চ ${JOIN_MAX}টি)</h3>
+      <div id="jn_list">${items.slice(0, JOIN_MAX).map(joinRowHtml).join('')}</div>
+      <div class="row-act" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" type="button" onclick="joinAdd()">＋ চ্যানেল/গ্রুপ যোগ করুন</button>
+      </div>
+      <button class="btn blue" style="margin-top:14px" onclick="joinSave()">💾 Save Join Gate</button>
+    </div>`;
+}
+function joinAdd(){
+  if (document.querySelectorAll('#jn_list .jn-row').length >= JOIN_MAX) return toast('সর্বোচ্চ ' + JOIN_MAX + 'টি', 'err');
+  $('jn_list').insertAdjacentHTML('beforeend', joinRowHtml({}));
+}
+function joinMove(btn, dir){
+  const row = btn.closest('.jn-row'), sib = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (sib) dir < 0 ? sib.before(row) : sib.after(row);
+}
+function joinAuto(inp){
+  const row = inp.closest('.jn-row'), c = row.querySelector('.jn-c'), m = String(inp.value).trim().match(/^https:\/\/t\.me\/([A-Za-z0-9_]{4,32})$/);
+  if (m && !c.value.trim()) c.value = '@' + m[1];
+  const n = row.querySelector('.jn-n'); if (m && !n.value.trim()) n.value = '@' + m[1];
+}
+function joinRead(){
+  return [...document.querySelectorAll('#jn_list .jn-row')].map(r => ({
+    type: r.querySelector('.jn-t').value === 'group' ? 'group' : 'channel',
+    name: r.querySelector('.jn-n').value.trim().slice(0, 40),
+    icon: r.querySelector('.jn-i').value.trim().slice(0, 300),
+    url: r.querySelector('.jn-l').value.trim().slice(0, 100),
+    chat: r.querySelector('.jn-c').value.trim().slice(0, 40)
+  }));
+}
+async function joinTest(btn){
+  const row = btn.closest('.jn-row'); let chat = row.querySelector('.jn-c').value.trim();
+  const m = row.querySelector('.jn-l').value.trim().match(/^https:\/\/t\.me\/([A-Za-z0-9_]{4,32})$/);
+  if (!chat && m) chat = '@' + m[1];
+  if (!chat) return toast('এই লিংকের জন্য CHAT (@username বা -100… আইডি) দিন', 'err');
+  if (!TGE.tok) return toast('আগে Bot Token সেভ করুন', 'err');
+  const old = btn.textContent; btn.textContent = '…'; btn.disabled = true;
+  try{
+    const me = await tgApi('getMe'), c = await tgApi('getChat', { chat_id: chat });
+    let adm = false; try{ const cm = await tgApi('getChatMember', { chat_id: chat, user_id: me.id }); adm = cm.status === 'administrator' || cm.status === 'creator'; }catch(e){}
+    toast(adm ? '✅ ' + (c.title || chat) + ' — বট Admin, যাচাই কাজ করবে' : '⚠️ ' + (c.title || chat) + ' — বট Admin নয়। বটকে Admin বানান, নইলে যাচাই হবে না', adm ? undefined : 'err');
+  }catch(e){ toast('❌ ' + String(e.message || e).slice(0, 120) + ' (CHAT ঠিক? বট ওই চ্যানেলে আছে?)', 'err'); }
+  btn.textContent = old; btn.disabled = false;
+}
+async function joinSave(){
+  const items = joinRead(), on = $('jn_on').value === 'true', verify = $('jn_v').value === 'true';
+  for (let i = 0; i < items.length; i++){
+    const x = items[i], n = '#' + (i + 1) + ': ';
+    if (!x.name) return toast(n + 'Name লিখুন', 'err');
+    if (!JOIN_LINK.test(x.url)) return toast(n + 'Join link ঠিক নয় (https://t.me/… দিয়ে শুরু)', 'err');
+    if (x.chat && !JOIN_CHAT.test(x.chat)) return toast(n + 'CHAT হবে @username বা -100… আইডি', 'err');
+    if (x.icon && !/^https:\/\/[^\s"'<>]{4,300}$/.test(x.icon)) return toast(n + 'Icon লিংক ঠিক নয় (https)', 'err');
+  }
+  if (on && !items.length) return toast('চালু করতে অন্তত একটা চ্যানেল/গ্রুপ যোগ করুন', 'err');
+  if (on && verify && items.every(x => !x.chat) && !await confirmDialog('কোনো CHAT দেওয়া নেই', 'যাচাই চালু আছে কিন্তু কোনো আইটেমে @username/আইডি নেই। তাই কিছুই যাচাই হবে না, শুধু Join ট্যাপ করলেই চলবে। তবুও সেভ করবেন?', 'সেভ করুন')) return;
+  try{
+    await db.collection('settings').doc('join').set({ on, verify, items, ver: Date.now(), updated: Date.now() });
+    toast('Join Gate সেভ হয়েছে ✅');
   }catch(e){ toast('ব্যর্থ: ' + e.message, 'err'); }
 }
 /* =============== AI PROVIDERS (Admin) =============== */
@@ -1906,6 +2205,16 @@ async function doBotMsg(){
   if (!TGE.tok) return toast('আগে Settings এ Bot Token দিন', 'err');
   if (!text) return toast('মেসেজ লিখুন', 'err');
   if (one && !uid) return toast('ইউজার বাছুন', 'err');
+  if (TGE.py){
+    if (!await confirmDialog('Bot মেসেজ পাঠাবেন?', one ? 'এই ইউজারকে মেসেজ যাবে।' : 'bot.py ব্যাকগ্রাউন্ডে সবাইকে পাঠাবে। পেজ বন্ধ করলেও চলবে।', 'Send')) return;
+    const b0 = $('bt_b'); b0.disabled = true;
+    try{
+      if (one && !cache.tg[uid]) throw new Error('এই ইউজারের Telegram যুক্ত নেই');
+      await addDoc('broadcasts', { text, target: one ? 'one' : 'all', ...(one ? { tgId: String(cache.tg[uid].tgId) } : {}), status: 'queued', sent: 0, failed: 0, by: auth.currentUser?.email || '' });
+      $('bt_m').value = ''; toast('✅ bot.py-এর কিউতে গেছে — পেজ বন্ধ করলেও পাঠানো চলবে');
+    }catch(e){ toast('ব্যর্থ: ' + (e.message || e.code), 'err'); }
+    b0.disabled = false; return;
+  }
   if (!await confirmDialog('Bot মেসেজ পাঠাবেন?', one ? 'এই ইউজারকে মেসেজ যাবে।' : 'বটের সব ইউজারের ইনবক্সে মেসেজ যাবে। শেষ না হওয়া পর্যন্ত পেজ খোলা রাখুন।', 'Send')) return;
   const b = $('bt_b'); b.disabled = true;
   const ids = new Set();
@@ -2409,6 +2718,17 @@ service cloud.firestore {
     match /tgLinks/{id}    { allow read: if isAdmin() || (signedIn() && request.auth.uid == id); allow write: if isAdmin(); }
     match /botUsers/{id}   { allow read, write: if isAdmin(); }
     match /broadcasts/{id} { allow read, write: if isAdmin(); }
+    match /joinReq/{id} {
+      allow create, update: if signedIn() && request.auth.uid == id
+                            && request.resource.data.keys().hasOnly(['initData','nonce','ts'])
+                            && request.resource.data.initData is string && request.resource.data.initData.size() < 4100
+                            && request.resource.data.nonce is string && request.resource.data.nonce.size() < 60;
+      allow read, delete: if isAdmin();
+    }
+    match /joinRes/{id} {
+      allow read: if signedIn() && (request.auth.uid == id || isAdmin());
+      allow write: if false;
+    }
     match /tgReq/{id} {
       allow create, update: if signedIn() && request.auth.uid == id && request.resource.data.keys().hasOnly(['initData','ts']);
       allow read, delete: if isAdmin();
