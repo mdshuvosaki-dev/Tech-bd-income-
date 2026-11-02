@@ -1883,6 +1883,13 @@ async function viewJoin(){
         ইউজার অ্যাপ খুললে লোডিংয়ের পর <b>"Join to continue"</b> স্ক্রিন আসবে। সব চ্যানেল/গ্রুপে জয়েন না করা পর্যন্ত অ্যাপের কিছুই ব্যবহার করতে পারবে না।<br>
         <b>যাচাই চালু থাকলে</b> bot.py সত্যিই জয়েন করেছে কিনা দেখে। এর জন্য: (১) bot.py চালু থাকতে হবে, (২) বটকে ওই চ্যানেল/গ্রুপের <b>Admin</b> বানাতে হবে, (৩) CHAT ঘরে @username বা -100… আইডি থাকতে হবে (পাবলিক লিংক দিলে নিজে ভরে যায়, প্রাইভেট t.me/+… লিংকে আইডি নিজে দিতে হবে)। CHAT ফাঁকা থাকলে ওই আইটেম যাচাই হয় না, শুধু Join বাটনে ট্যাপ করলেই হবে।
       </div></div>
+      <div id="jn_bot" class="notice" style="margin-top:10px"><span class="em">🤖</span><div>bot.py-এর অবস্থা দেখা হচ্ছে…</div></div>${(setTimeout(joinBotStatus, 300), '')}
+      <div class="notice" style="margin-top:10px"><span class="em">🧪</span><div>
+        <b>নিজের ফোনে স্ক্রিনটা দেখতে/টেস্ট করুন</b> (আপনি ওই চ্যানেলে থাকলেও স্ক্রিন আসবে, ওপরে "TEST MODE" লেখা থাকবে):<br>
+        <code id="jn_tl" style="word-break:break-all">${esc(joinTestLink())}</code>
+        <button class="btn ghost" type="button" onclick="joinCopyTest()">📋 Copy</button><br>
+        <span style="opacity:.75">লিংক Mini App না খুললে BotFather-এ দেখা আপনার Mini App-এর লিংকের শেষে <code>?startapp=jgtest</code> যোগ করুন। টেস্ট মোডে স্ক্রিনে সেভ করা সেটিং (ON/OFF, কয়টা আইটেম) দেখা যায়।</span>
+      </div></div>
       <div class="form-grid">
         <div class="field"><label>JOIN GATE</label><select id="jn_on"><option value="true" ${j.on === true ? 'selected' : ''}>চালু</option><option value="false" ${j.on === true ? '' : 'selected'}>বন্ধ</option></select></div>
         <div class="field"><label>যাচাই পদ্ধতি</label><select id="jn_v"><option value="true" ${j.verify === false ? '' : 'selected'}>bot.py দিয়ে সত্যিই যাচাই (প্রস্তাবিত)</option><option value="false" ${j.verify === false ? 'selected' : ''}>শুধু Join ট্যাপ করলেই চলবে</option></select></div>
@@ -1897,6 +1904,21 @@ async function viewJoin(){
       <button class="btn blue" style="margin-top:14px" onclick="joinSave()">💾 Save Join Gate</button>
     </div>`;
 }
+async function joinBotStatus(){
+  const e = $('jn_bot'); if (!e) return;
+  let h;
+  try{
+    const d = await db.collection('private').doc('bot').get(), s = await db.collection('private').doc('botStatus').get();
+    const c = d.exists ? d.data() : {}, x = s.exists ? s.data() : {}, t = x.ts ? tsMs(x.ts) : 0;
+    const ver = String(x.version || '0').split('.').map(n => parseInt(n, 10) || 0), okVer = ver[0] > 1 || (ver[0] === 1 && (ver[1] > 4 || (ver[1] === 4 && ver[2] >= 1)));
+    const alive = t > 0 && Date.now() - t < 180000 && x.state === 'running' && x.engine === 'bot.py';
+    if (c.pyMode !== true) h = '🔴 <b>bot.py Mode বন্ধ।</b> যাচাই করতে Settings → Telegram Bot-এ "bot.py Mode চালু করুন" চাপুন (নইলে নিচে "শুধু Join ট্যাপ" পদ্ধতি বাছুন)।';
+    else if (!alive) h = '🔴 <b>bot.py চলছে না</b> (শেষ সাড়া ' + (t ? Math.round((Date.now() - t) / 60000) + ' মিনিট আগে' : 'কখনো না') + ')। যাচাই কাজ করবে না, ইউজাররা ১০ সেকেন্ড পর স্ক্রিনে আটকে থাকবে। Render-এ bot.py চালু আছে কিনা দেখুন।';
+    else if (!okVer) h = '🟠 bot.py চলছে কিন্তু সংস্করণ <b>v' + esc(x.version || '?') + '</b> পুরনো। নতুন bot.py (v1.4.1 বা তার পরের) GitHub-এ বসিয়ে Render-এ Deploy দিন, নইলে Join যাচাই হবে না।';
+    else h = '🟢 <b>bot.py চলছে (v' + esc(x.version) + ')</b> — Join যাচাই কাজ করবে। বটকে প্রতিটা চ্যানেল/গ্রুপের Admin বানাতে ভুলবেন না (🔍 Test দিয়ে দেখুন)।';
+  }catch(err){ h = '⚠️ অবস্থা পড়া যায়নি: ' + esc(err.message || err.code); }
+  const el = $('jn_bot'); if (el) el.innerHTML = '<span class="em">🤖</span><div>' + h + '</div>';
+}
 function joinAdd(){
   if (document.querySelectorAll('#jn_list .jn-row').length >= JOIN_MAX) return toast('সর্বোচ্চ ' + JOIN_MAX + 'টি', 'err');
   $('jn_list').insertAdjacentHTML('beforeend', joinRowHtml({}));
@@ -1910,14 +1932,30 @@ function joinAuto(inp){
   if (m && !c.value.trim()) c.value = '@' + m[1];
   const n = row.querySelector('.jn-n'); if (m && !n.value.trim()) n.value = '@' + m[1];
 }
+function joinNorm(u){
+  u = String(u || '').trim();
+  let m = /^(?:https?:\/\/)?(?:t|telegram)\.(?:me|dog)\/(\+[A-Za-z0-9_-]{6,40}|joinchat\/[A-Za-z0-9_-]{6,40}|[A-Za-z0-9_]{4,32})\/?(?:[?#].*)?$/i.exec(u);
+  if (m) return 'https://t.me/' + m[1];
+  m = /^@([A-Za-z0-9_]{4,32})$/.exec(u);
+  return m ? 'https://t.me/' + m[1] : u;
+}
 function joinRead(){
   return [...document.querySelectorAll('#jn_list .jn-row')].map(r => ({
     type: r.querySelector('.jn-t').value === 'group' ? 'group' : 'channel',
     name: r.querySelector('.jn-n').value.trim().slice(0, 40),
     icon: r.querySelector('.jn-i').value.trim().slice(0, 300),
-    url: r.querySelector('.jn-l').value.trim().slice(0, 100),
+    url: joinNorm(r.querySelector('.jn-l').value).slice(0, 100),
     chat: r.querySelector('.jn-c').value.trim().slice(0, 40)
   }));
+}
+function joinTestLink(){
+  const un = String((TGE.uname || (TGE.cfg && TGE.cfg.botUsername) || '')).replace(/^@/, '');
+  return un ? 'https://t.me/' + un + '/' + un + '?startapp=jgtest' : 'https://t.me/আপনার_বট/আপনার_মিনি_অ্যাপ?startapp=jgtest';
+}
+function joinCopyTest(){
+  const t = joinTestLink(), done = () => toast('লিংক কপি হয়েছে ✅');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done).catch(done);
+  else { const x = document.createElement('textarea'); x.value = t; document.body.appendChild(x); x.select(); try{ document.execCommand('copy'); }catch(e){} x.remove(); done(); }
 }
 async function joinTest(btn){
   const row = btn.closest('.jn-row'); let chat = row.querySelector('.jn-c').value.trim();
